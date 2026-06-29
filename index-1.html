@@ -1,0 +1,939 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>FERY GOLD SCANNER</title>
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=Share+Tech+Mono&family=Rajdhani:wght@400;600;700&display=swap');
+
+  :root {
+    --gold: #F5A623;
+    --gold-dim: #a06c10;
+    --green: #00E676;
+    --red: #FF1744;
+    --bg: #0A0A0A;
+    --card: #111111;
+    --card2: #181818;
+    --border: #2a2a2a;
+    --text: #E0E0E0;
+    --muted: #555;
+  }
+
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+
+  body {
+    background: var(--bg);
+    color: var(--text);
+    font-family: 'Rajdhani', sans-serif;
+    min-height: 100vh;
+    padding-bottom: 20px;
+  }
+
+  /* HEADER */
+  .header {
+    background: linear-gradient(135deg, #0f0f0f, #1a1200);
+    border-bottom: 1px solid var(--gold-dim);
+    padding: 12px 16px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    position: sticky;
+    top: 0;
+    z-index: 100;
+  }
+  .header-left { display: flex; align-items: center; gap: 10px; }
+  .logo-icon {
+    width: 38px; height: 38px;
+    background: var(--gold);
+    border-radius: 8px;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 18px;
+  }
+  .brand-name {
+    font-size: 20px; font-weight: 700;
+    color: var(--gold);
+    letter-spacing: 2px;
+  }
+  .brand-sub { font-size: 10px; color: var(--muted); letter-spacing: 1px; }
+  .live-badge {
+    display: flex; align-items: center; gap: 5px;
+    font-size: 11px; color: var(--green);
+    font-family: 'Share Tech Mono', monospace;
+  }
+  .live-dot {
+    width: 7px; height: 7px;
+    background: var(--green);
+    border-radius: 50%;
+    animation: pulse 1.5s infinite;
+  }
+  @keyframes pulse {
+    0%,100% { opacity: 1; } 50% { opacity: 0.3; }
+  }
+  .header-time { font-family: 'Share Tech Mono', monospace; font-size: 13px; color: var(--gold); text-align: right; }
+
+  /* PRICE CARD */
+  .price-card {
+    background: linear-gradient(135deg, #161200, #0f0f0f);
+    border: 1px solid var(--gold-dim);
+    border-radius: 12px;
+    margin: 12px;
+    padding: 16px;
+  }
+  .price-label { font-size: 11px; color: var(--muted); letter-spacing: 2px; margin-bottom: 4px; }
+  .price-main { font-family: 'Share Tech Mono', monospace; font-size: 36px; color: var(--gold); font-weight: bold; }
+  .price-change { font-size: 13px; margin-top: 4px; }
+  .price-change.up { color: var(--green); }
+  .price-change.down { color: var(--red); }
+  .price-stats { display: flex; gap: 16px; margin-top: 10px; }
+  .price-stat { font-size: 12px; color: var(--muted); }
+  .price-stat span { color: var(--text); font-family: 'Share Tech Mono', monospace; }
+
+  /* SCAN BUTTON */
+  .scan-wrap { padding: 0 12px 12px; }
+  .scan-btn {
+    width: 100%;
+    background: linear-gradient(135deg, var(--gold), #c47d0a);
+    border: none; border-radius: 10px;
+    color: #000; font-family: 'Rajdhani', sans-serif;
+    font-size: 16px; font-weight: 700;
+    padding: 14px; cursor: pointer;
+    letter-spacing: 2px;
+    transition: all 0.2s;
+  }
+  .scan-btn:active { transform: scale(0.97); }
+  .scan-btn:disabled { opacity: 0.5; cursor: not-allowed; }
+  .refresh-info { text-align: center; font-size: 11px; color: var(--muted); margin-top: 6px; }
+
+  /* MTF BIAS */
+  .section { margin: 0 12px 12px; }
+  .section-title {
+    font-size: 12px; color: var(--gold);
+    letter-spacing: 2px; margin-bottom: 8px;
+  }
+  .mtf-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px; }
+  .mtf-card {
+    background: var(--card);
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    padding: 10px 8px;
+    text-align: center;
+  }
+  .mtf-tf { font-size: 11px; color: var(--muted); letter-spacing: 1px; }
+  .mtf-bias { font-size: 16px; font-weight: 700; margin: 4px 0 2px; }
+  .mtf-rsi { font-size: 10px; color: var(--muted); font-family: 'Share Tech Mono', monospace; }
+  .bull { color: var(--green); }
+  .bear { color: var(--red); }
+  .neu { color: var(--gold); }
+
+  /* CONFLUENCE */
+  .confluence-bar {
+    background: var(--card);
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    padding: 10px 12px;
+    display: flex; align-items: center; justify-content: space-between;
+    margin-top: 8px;
+  }
+  .conf-label { font-size: 12px; color: var(--muted); }
+  .conf-dots { display: flex; gap: 6px; }
+  .conf-dot {
+    width: 14px; height: 14px;
+    border-radius: 50%;
+    border: 1px solid var(--border);
+    background: var(--border);
+    transition: background 0.3s;
+  }
+  .conf-dot.active { background: var(--gold); border-color: var(--gold); }
+  .conf-score { font-size: 14px; font-weight: 700; color: var(--gold); }
+
+  /* SIGNAL CARD */
+  .signal-card {
+    background: var(--card);
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    padding: 16px;
+    min-height: 100px;
+    display: flex; flex-direction: column;
+    justify-content: center;
+  }
+  .signal-icon { font-size: 28px; margin-bottom: 6px; }
+  .signal-title { font-size: 18px; font-weight: 700; }
+  .signal-desc { font-size: 13px; color: var(--muted); margin-top: 4px; }
+  .signal-details { margin-top: 12px; display: flex; flex-direction: column; gap: 6px; }
+  .signal-row { display: flex; justify-content: space-between; font-size: 13px; }
+  .signal-row .key { color: var(--muted); }
+  .signal-row .val { font-family: 'Share Tech Mono', monospace; font-weight: 600; }
+  .signal-card.buy { border-color: var(--green); }
+  .signal-card.sell { border-color: var(--red); }
+  .signal-card.wait { border-color: var(--border); }
+
+  /* KALKULATOR */
+  .calc-card {
+    background: var(--card);
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    padding: 16px;
+  }
+  .input-row { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-bottom: 12px; }
+  .input-group label { font-size: 11px; color: var(--muted); letter-spacing: 1px; display: block; margin-bottom: 4px; }
+  .input-group input {
+    width: 100%;
+    background: var(--card2);
+    border: 1px solid var(--border);
+    border-radius: 6px;
+    color: var(--text);
+    font-family: 'Share Tech Mono', monospace;
+    font-size: 14px;
+    padding: 8px 10px;
+    outline: none;
+  }
+  .input-group input:focus { border-color: var(--gold); }
+  .lot-result {
+    background: linear-gradient(135deg, #161200, #0f0f0f);
+    border: 1px solid var(--gold-dim);
+    border-radius: 8px;
+    padding: 12px;
+    text-align: center;
+  }
+  .lot-label { font-size: 11px; color: var(--muted); letter-spacing: 2px; }
+  .lot-value { font-family: 'Share Tech Mono', monospace; font-size: 32px; color: var(--gold); font-weight: bold; margin: 4px 0; }
+  .lot-info { font-size: 11px; color: var(--muted); }
+
+  /* AI TUTOR CHAT */
+  .chat-section {
+    margin: 0 12px 12px;
+    background: var(--card);
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    overflow: hidden;
+  }
+  .chat-header {
+    background: linear-gradient(135deg, #161200, #111);
+    border-bottom: 1px solid var(--gold-dim);
+    padding: 12px 16px;
+    display: flex; align-items: center; gap: 10px;
+  }
+  .chat-header-icon { font-size: 18px; }
+  .chat-header-title { font-size: 14px; font-weight: 700; color: var(--gold); letter-spacing: 1px; }
+  .chat-header-sub { font-size: 11px; color: var(--muted); }
+  .chat-messages {
+    height: 260px;
+    overflow-y: auto;
+    padding: 12px;
+    display: flex; flex-direction: column; gap: 10px;
+    scroll-behavior: smooth;
+  }
+  .chat-messages::-webkit-scrollbar { width: 3px; }
+  .chat-messages::-webkit-scrollbar-thumb { background: var(--gold-dim); border-radius: 2px; }
+  .msg { display: flex; flex-direction: column; max-width: 88%; }
+  .msg.bot { align-self: flex-start; }
+  .msg.user { align-self: flex-end; }
+  .msg-bubble {
+    padding: 9px 13px;
+    border-radius: 12px;
+    font-size: 13px;
+    line-height: 1.5;
+  }
+  .msg.bot .msg-bubble {
+    background: var(--card2);
+    border: 1px solid var(--border);
+    color: var(--text);
+    border-bottom-left-radius: 3px;
+  }
+  .msg.user .msg-bubble {
+    background: linear-gradient(135deg, var(--gold), #c47d0a);
+    color: #000;
+    font-weight: 600;
+    border-bottom-right-radius: 3px;
+  }
+  .msg-time { font-size: 10px; color: var(--muted); margin-top: 3px; font-family: 'Share Tech Mono', monospace; }
+  .msg.user .msg-time { text-align: right; }
+
+  /* QUICK BUTTONS */
+  .quick-btns {
+    padding: 8px 12px;
+    display: flex; flex-wrap: wrap; gap: 6px;
+    border-top: 1px solid var(--border);
+  }
+  .quick-btn {
+    background: var(--card2);
+    border: 1px solid var(--border);
+    border-radius: 16px;
+    color: var(--text);
+    font-family: 'Rajdhani', sans-serif;
+    font-size: 12px;
+    padding: 5px 12px;
+    cursor: pointer;
+    transition: all 0.2s;
+  }
+  .quick-btn:active { border-color: var(--gold); color: var(--gold); }
+
+  /* CHAT INPUT */
+  .chat-input-wrap {
+    padding: 10px 12px;
+    border-top: 1px solid var(--border);
+    display: flex; gap: 8px; align-items: center;
+  }
+  .chat-input {
+    flex: 1;
+    background: var(--card2);
+    border: 1px solid var(--border);
+    border-radius: 20px;
+    color: var(--text);
+    font-family: 'Rajdhani', sans-serif;
+    font-size: 14px;
+    padding: 8px 14px;
+    outline: none;
+  }
+  .chat-input:focus { border-color: var(--gold); }
+  .chat-send {
+    width: 38px; height: 38px;
+    background: var(--gold);
+    border: none; border-radius: 50%;
+    font-size: 16px; cursor: pointer;
+    display: flex; align-items: center; justify-content: center;
+    transition: transform 0.2s;
+  }
+  .chat-send:active { transform: scale(0.9); }
+
+  /* TYPING */
+  .typing { display: flex; gap: 4px; align-items: center; padding: 10px 13px; }
+  .typing span {
+    width: 6px; height: 6px;
+    background: var(--gold);
+    border-radius: 50%;
+    animation: bounce 1s infinite;
+  }
+  .typing span:nth-child(2) { animation-delay: 0.2s; }
+  .typing span:nth-child(3) { animation-delay: 0.4s; }
+  @keyframes bounce { 0%,60%,100%{transform:translateY(0)} 30%{transform:translateY(-6px)} }
+
+  /* WINRATE */
+  .winrate-card {
+    background: var(--card);
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    padding: 14px 16px;
+  }
+  .wr-row { display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px; }
+  .wr-label { font-size: 12px; color: var(--muted); letter-spacing: 1px; }
+  .wr-value { font-size: 22px; font-weight: 700; color: var(--green); font-family: 'Share Tech Mono', monospace; }
+  .wr-bar-bg { height: 4px; background: var(--border); border-radius: 2px; }
+  .wr-bar { height: 4px; background: var(--green); border-radius: 2px; width: 0%; transition: width 0.5s; }
+  .wr-stats { display: flex; justify-content: space-between; margin-top: 6px; font-size: 11px; color: var(--muted); font-family: 'Share Tech Mono', monospace; }
+
+  .footer { text-align: center; font-size: 10px; color: var(--muted); padding: 8px 16px; letter-spacing: 1px; }
+</style>
+</head>
+<body>
+
+<!-- HEADER -->
+<div class="header">
+  <div class="header-left">
+    <div class="logo-icon">⚡</div>
+    <div>
+      <div class="brand-name">FERY GOLD</div>
+      <div class="brand-sub">MTF SIGNAL SCANNER</div>
+    </div>
+  </div>
+  <div>
+    <div class="live-badge"><div class="live-dot"></div>LIVE</div>
+    <div class="header-time" id="clockDisplay">--:--:--</div>
+    <div style="font-size:10px;color:var(--muted);text-align:right">WIB</div>
+  </div>
+</div>
+
+<!-- PRICE CARD -->
+<div class="price-card">
+  <div class="price-label">XAU / USD · PAXG LIVE</div>
+  <div class="price-main" id="priceMain">––––.––</div>
+  <div class="price-change" id="priceChange">– –.–– (–.––%)</div>
+  <div class="price-stats">
+    <div class="price-stat">High <span id="priceHigh">–</span></div>
+    <div class="price-stat">Low <span id="priceLow">–</span></div>
+    <div class="price-stat">Vol <span id="priceVol">–</span></div>
+  </div>
+</div>
+
+<!-- SCAN BUTTON -->
+<div class="scan-wrap">
+  <button class="scan-btn" id="scanBtn" onclick="runScan()">⚡ SCAN SINYAL SEKARANG</button>
+  <div class="refresh-info" id="refreshInfo">Auto refresh tiap 30 detik · Last update: –</div>
+</div>
+
+<!-- MTF BIAS -->
+<div class="section">
+  <div class="section-title">📊 MULTI-TIMEFRAME BIAS</div>
+  <div class="mtf-grid">
+    <div class="mtf-card">
+      <div class="mtf-tf">H1</div>
+      <div class="mtf-bias neu" id="h1Bias">–</div>
+      <div class="mtf-rsi" id="h1Rsi">RSI –</div>
+    </div>
+    <div class="mtf-card">
+      <div class="mtf-tf">M15</div>
+      <div class="mtf-bias neu" id="m15Bias">–</div>
+      <div class="mtf-rsi" id="m15Rsi">RSI –</div>
+    </div>
+    <div class="mtf-card">
+      <div class="mtf-tf">M5</div>
+      <div class="mtf-bias neu" id="m5Bias">–</div>
+      <div class="mtf-rsi" id="m5Rsi">RSI –</div>
+    </div>
+  </div>
+  <div class="confluence-bar">
+    <div class="conf-label">Confluence Strength</div>
+    <div class="conf-dots">
+      <div class="conf-dot" id="dot1"></div>
+      <div class="conf-dot" id="dot2"></div>
+      <div class="conf-dot" id="dot3"></div>
+    </div>
+    <div class="conf-score" id="confScore">–/3</div>
+  </div>
+</div>
+
+<!-- SIGNAL ENTRY -->
+<div class="section">
+  <div class="section-title">🎯 SIGNAL ENTRY</div>
+  <div class="signal-card wait" id="signalCard">
+    <div class="signal-icon">🔍</div>
+    <div class="signal-title">Belum ada sinyal</div>
+    <div class="signal-desc">Klik Scan untuk analisa market</div>
+  </div>
+</div>
+
+<!-- KALKULATOR LOT -->
+<div class="section">
+  <div class="section-title">🧮 KALKULATOR LOT</div>
+  <div class="calc-card">
+    <div class="input-row">
+      <div class="input-group">
+        <label>MODAL ($)</label>
+        <input type="number" id="modalInput" value="1000" oninput="calcLot()">
+      </div>
+      <div class="input-group">
+        <label>RISIKO (%)</label>
+        <input type="number" id="risikoInput" value="1" step="0.1" oninput="calcLot()">
+      </div>
+    </div>
+    <div class="input-row">
+      <div class="input-group">
+        <label>SL (PIPS)</label>
+        <input type="number" id="slInput" placeholder="Auto" oninput="calcLot()">
+      </div>
+      <div class="input-group">
+        <label>TP (PIPS)</label>
+        <input type="number" id="tpInput" placeholder="Auto" oninput="calcLot()">
+      </div>
+    </div>
+    <div class="lot-result">
+      <div class="lot-label">REKOMENDASI LOT XAU/USD</div>
+      <div class="lot-value" id="lotValue">0.01</div>
+      <div class="lot-info" id="lotInfo">Risiko $10 · Isi SL untuk presisi</div>
+    </div>
+  </div>
+</div>
+
+<!-- WINRATE -->
+<div class="section">
+  <div class="section-title">📈 SESSION WINRATE</div>
+  <div class="winrate-card">
+    <div class="wr-row">
+      <div class="wr-label">WINRATE</div>
+      <div class="wr-value" id="wrValue">0%</div>
+    </div>
+    <div class="wr-bar-bg"><div class="wr-bar" id="wrBar"></div></div>
+    <div class="wr-stats">
+      <span id="wrDetail">0 / 0 trades</span>
+      <span id="wrSession">Session: –</span>
+    </div>
+  </div>
+</div>
+
+<!-- AI TUTOR CHAT -->
+<div class="chat-section">
+  <div class="chat-header">
+    <div class="chat-header-icon">🤖</div>
+    <div>
+      <div class="chat-header-title">FERY ALGO AI</div>
+      <div class="chat-header-sub">Tanya apapun tentang XAU trading</div>
+    </div>
+  </div>
+
+  <div class="chat-messages" id="chatMessages">
+    <div class="msg bot">
+      <div class="msg-bubble">Halo trader! Gw siap bantu lo analisis XAU/USD. Tanya apa aja — bias sekarang, setup entry, risk management, atau kondisi gold market. Gas! ⚡</div>
+      <div class="msg-time" id="botInitTime">--:--</div>
+    </div>
+  </div>
+
+  <div class="quick-btns">
+    <button class="quick-btn" onclick="quickAsk('Bias sekarang?')">Bias sekarang?</button>
+    <button class="quick-btn" onclick="quickAsk('Waktu scalp?')">Waktu scalp?</button>
+    <button class="quick-btn" onclick="quickAsk('Setup hari ini?')">Setup hari ini?</button>
+    <button class="quick-btn" onclick="quickAsk('SL ideal?')">SL ideal?</button>
+    <button class="quick-btn" onclick="quickAsk('Kenapa spike?')">Kenapa spike?</button>
+    <button class="quick-btn" onclick="quickAsk('RSI sekarang?')">RSI sekarang?</button>
+  </div>
+
+  <div class="chat-input-wrap">
+    <input class="chat-input" id="chatInput" placeholder="Tanya sesuatu..." onkeydown="if(event.key==='Enter')sendChat()">
+    <button class="chat-send" onclick="sendChat()">↑</button>
+  </div>
+</div>
+
+<div class="footer">© 2026 Fery Gold Scanner · Data: Binance PAXG/USDT · Bukan saran investasi</div>
+
+<script>
+// ============================================================
+// STATE
+// ============================================================
+let state = {
+  price: null, prevPrice: null,
+  high24: null, low24: null, vol24: null,
+  rsi: { h1: null, m15: null, m5: null },
+  ema20: { h1: null, m15: null, m5: null },
+  ema50: { h1: null, m15: null, m5: null },
+  atr: null,
+  bias: { h1: null, m15: null, m5: null },
+  confluence: 0,
+  signal: null,
+  lastScan: null,
+  winTotal: 0, winCount: 0,
+  sessionStart: null
+};
+
+// ============================================================
+// CLOCK
+// ============================================================
+function updateClock() {
+  const now = new Date();
+  const wib = new Date(now.getTime() + (7 * 60 * 60 * 1000));
+  const h = String(wib.getUTCHours()).padStart(2,'0');
+  const m = String(wib.getUTCMinutes()).padStart(2,'0');
+  const s = String(wib.getUTCSeconds()).padStart(2,'0');
+  document.getElementById('clockDisplay').textContent = `${h}:${m}:${s}`;
+  document.getElementById('botInitTime').textContent = `${h}:${m}`;
+}
+setInterval(updateClock, 1000);
+updateClock();
+
+function getWIBTime() {
+  const now = new Date();
+  const wib = new Date(now.getTime() + (7 * 60 * 60 * 1000));
+  const h = String(wib.getUTCHours()).padStart(2,'0');
+  const m = String(wib.getUTCMinutes()).padStart(2,'0');
+  return `${h}:${m}`;
+}
+
+function getWIBHour() {
+  const now = new Date();
+  const wib = new Date(now.getTime() + (7 * 60 * 60 * 1000));
+  return wib.getUTCHours();
+}
+
+// ============================================================
+// FETCH BINANCE KLINES
+// ============================================================
+async function fetchKlines(symbol, interval, limit) {
+  const url = `https://api.binance.com/api/v3/klines?symbol=${symbol}&interval=${interval}&limit=${limit}`;
+  const r = await fetch(url);
+  const d = await r.json();
+  return d.map(k => ({
+    open: parseFloat(k[1]),
+    high: parseFloat(k[2]),
+    low: parseFloat(k[3]),
+    close: parseFloat(k[4]),
+    vol: parseFloat(k[5])
+  }));
+}
+
+async function fetch24h() {
+  const url = 'https://api.binance.com/api/v3/ticker/24hr?symbol=PAXGUSDT';
+  const r = await fetch(url);
+  return await r.json();
+}
+
+// ============================================================
+// INDICATORS
+// ============================================================
+function calcRSI(closes, period = 14) {
+  if (closes.length < period + 1) return 50;
+  let gains = 0, losses = 0;
+  for (let i = closes.length - period; i < closes.length; i++) {
+    const diff = closes[i] - closes[i - 1];
+    if (diff > 0) gains += diff; else losses -= diff;
+  }
+  const avgG = gains / period;
+  const avgL = losses / period;
+  if (avgL === 0) return 100;
+  const rs = avgG / avgL;
+  return 100 - (100 / (1 + rs));
+}
+
+function calcEMA(closes, period) {
+  const k = 2 / (period + 1);
+  let ema = closes[0];
+  for (let i = 1; i < closes.length; i++) {
+    ema = closes[i] * k + ema * (1 - k);
+  }
+  return ema;
+}
+
+function calcATR(candles, period = 14) {
+  const trs = [];
+  for (let i = 1; i < candles.length; i++) {
+    const tr = Math.max(
+      candles[i].high - candles[i].low,
+      Math.abs(candles[i].high - candles[i - 1].close),
+      Math.abs(candles[i].low - candles[i - 1].close)
+    );
+    trs.push(tr);
+  }
+  return trs.slice(-period).reduce((a, b) => a + b, 0) / period;
+}
+
+function getBias(closes, rsi, ema20, ema50) {
+  const price = closes[closes.length - 1];
+  let score = 0;
+  if (rsi > 55) score++; else if (rsi < 45) score--;
+  if (price > ema20) score++; else score--;
+  if (ema20 > ema50) score++; else score--;
+  if (score >= 2) return 'BULLISH';
+  if (score <= -2) return 'BEARISH';
+  return 'NEUTRAL';
+}
+
+// ============================================================
+// SCAN
+// ============================================================
+async function runScan() {
+  const btn = document.getElementById('scanBtn');
+  btn.disabled = true;
+  btn.textContent = '⏳ SCANNING...';
+
+  try {
+    // Fetch 24h stats
+    const ticker = await fetch24h();
+    state.price = parseFloat(ticker.lastPrice);
+    state.high24 = parseFloat(ticker.highPrice);
+    state.low24 = parseFloat(ticker.lowPrice);
+    state.vol24 = parseFloat(ticker.volume);
+    const priceChange = parseFloat(ticker.priceChange);
+    const pricePct = parseFloat(ticker.priceChangePercent);
+
+    // Update price display
+    document.getElementById('priceMain').textContent = state.price.toFixed(2);
+    const chEl = document.getElementById('priceChange');
+    const sign = priceChange >= 0 ? '+' : '';
+    chEl.textContent = `${sign}${priceChange.toFixed(2)} (${sign}${pricePct.toFixed(2)}%)`;
+    chEl.className = 'price-change ' + (priceChange >= 0 ? 'up' : 'down');
+    document.getElementById('priceHigh').textContent = state.high24.toFixed(2);
+    document.getElementById('priceLow').textContent = state.low24.toFixed(2);
+    document.getElementById('priceVol').textContent = state.vol24.toFixed(1);
+
+    // Fetch klines untuk tiap TF
+    const [h1, m15, m5] = await Promise.all([
+      fetchKlines('PAXGUSDT', '1h', 60),
+      fetchKlines('PAXGUSDT', '15m', 60),
+      fetchKlines('PAXGUSDT', '5m', 60)
+    ]);
+
+    // Kalkulasi indikator
+    const calcTF = (candles) => {
+      const closes = candles.map(c => c.close);
+      const rsi = calcRSI(closes);
+      const ema20 = calcEMA(closes, 20);
+      const ema50 = calcEMA(closes, 50);
+      const bias = getBias(closes, rsi, ema20, ema50);
+      return { rsi, ema20, ema50, bias };
+    };
+
+    const r1 = calcTF(h1);
+    const r15 = calcTF(m15);
+    const r5 = calcTF(m5);
+    state.atr = calcATR(m5);
+
+    state.rsi = { h1: r1.rsi, m15: r15.rsi, m5: r5.rsi };
+    state.bias = { h1: r1.bias, m15: r15.bias, m5: r5.bias };
+    state.ema20 = { h1: r1.ema20, m15: r15.ema20, m5: r5.ema20 };
+
+    // Update MTF display
+    updateMTF('h1', r1.bias, r1.rsi, 'h1Bias', 'h1Rsi');
+    updateMTF('m15', r15.bias, r15.rsi, 'm15Bias', 'm15Rsi');
+    updateMTF('m5', r5.bias, r5.rsi, 'm5Bias', 'm5Rsi');
+
+    // Confluence
+    const bulls = [r1.bias, r15.bias, r5.bias].filter(b => b === 'BULLISH').length;
+    const bears = [r1.bias, r15.bias, r5.bias].filter(b => b === 'BEARISH').length;
+    state.confluence = Math.max(bulls, bears);
+    updateConfluence(state.confluence);
+
+    // Generate signal
+    generateSignal(bulls, bears);
+
+    // Update lot calc
+    calcLot();
+
+    state.lastScan = new Date();
+    document.getElementById('refreshInfo').textContent = `Auto refresh tiap 30 detik · Last update: ${getWIBTime()} WIB`;
+
+  } catch (e) {
+    console.error(e);
+    document.getElementById('signalCard').innerHTML = `<div class="signal-icon">⚠️</div><div class="signal-title">Gagal fetch data</div><div class="signal-desc">Cek koneksi internet lo</div>`;
+  }
+
+  btn.disabled = false;
+  btn.textContent = '⚡ SCAN SINYAL SEKARANG';
+}
+
+function updateMTF(tf, bias, rsi, biasId, rsiId) {
+  const el = document.getElementById(biasId);
+  el.textContent = bias === 'BULLISH' ? '▲ BULL' : bias === 'BEARISH' ? '▼ BEAR' : '◆ NEU';
+  el.className = 'mtf-bias ' + (bias === 'BULLISH' ? 'bull' : bias === 'BEARISH' ? 'bear' : 'neu');
+  document.getElementById(rsiId).textContent = `RSI ${rsi.toFixed(1)}`;
+}
+
+function updateConfluence(score) {
+  for (let i = 1; i <= 3; i++) {
+    document.getElementById(`dot${i}`).className = 'conf-dot' + (i <= score ? ' active' : '');
+  }
+  document.getElementById('confScore').textContent = `${score}/3`;
+}
+
+function generateSignal(bulls, bears) {
+  const card = document.getElementById('signalCard');
+  const atr = state.atr || 1;
+  const price = state.price;
+  const sl = (atr * 1.5).toFixed(2);
+  const tp1 = (atr * 2).toFixed(2);
+  const tp2 = (atr * 3.5).toFixed(2);
+  const rr = (tp1 / sl).toFixed(1);
+
+  if (bulls === 3) {
+    state.signal = 'BUY';
+    card.className = 'signal-card buy';
+    card.innerHTML = `
+      <div class="signal-icon">🟢</div>
+      <div class="signal-title bull">BUY SIGNAL</div>
+      <div class="signal-desc">Full confluence bullish — H1+M15+M5 align ✅</div>
+      <div class="signal-details">
+        <div class="signal-row"><span class="key">Entry</span><span class="val bull">$${price.toFixed(2)}</span></div>
+        <div class="signal-row"><span class="key">SL</span><span class="val bear">-${sl} pts</span></div>
+        <div class="signal-row"><span class="key">TP1</span><span class="val bull">+${tp1} pts</span></div>
+        <div class="signal-row"><span class="key">TP2</span><span class="val bull">+${tp2} pts</span></div>
+        <div class="signal-row"><span class="key">R:R</span><span class="val neu">1:${rr}</span></div>
+      </div>`;
+  } else if (bears === 3) {
+    state.signal = 'SELL';
+    card.className = 'signal-card sell';
+    card.innerHTML = `
+      <div class="signal-icon">🔴</div>
+      <div class="signal-title bear">SELL SIGNAL</div>
+      <div class="signal-desc">Full confluence bearish — H1+M15+M5 align ✅</div>
+      <div class="signal-details">
+        <div class="signal-row"><span class="key">Entry</span><span class="val bear">$${price.toFixed(2)}</span></div>
+        <div class="signal-row"><span class="key">SL</span><span class="val bear">+${sl} pts</span></div>
+        <div class="signal-row"><span class="key">TP1</span><span class="val bull">-${tp1} pts</span></div>
+        <div class="signal-row"><span class="key">TP2</span><span class="val bull">-${tp2} pts</span></div>
+        <div class="signal-row"><span class="key">R:R</span><span class="val neu">1:${rr}</span></div>
+      </div>`;
+  } else if (bulls === 2 || bears === 2) {
+    const dir = bulls >= bears ? 'BUY' : 'SELL';
+    state.signal = 'WAIT';
+    card.className = 'signal-card wait';
+    card.innerHTML = `
+      <div class="signal-icon">⚠️</div>
+      <div class="signal-title neu">PARTIAL — ${dir} LEMAH</div>
+      <div class="signal-desc">2/3 TF align. Tunggu konfirmasi M5 sebelum entry.</div>
+      <div class="signal-details">
+        <div class="signal-row"><span class="key">Harga</span><span class="val">$${price.toFixed(2)}</span></div>
+        <div class="signal-row"><span class="key">ATR M5</span><span class="val">${atr.toFixed(2)}</span></div>
+      </div>`;
+  } else {
+    state.signal = 'NONE';
+    card.className = 'signal-card wait';
+    card.innerHTML = `
+      <div class="signal-icon">🔄</div>
+      <div class="signal-title">SIDEWAYS / CHOPPY</div>
+      <div class="signal-desc">Tidak ada confluence. Skip dulu, tunggu market jelas.</div>
+      <div class="signal-details">
+        <div class="signal-row"><span class="key">Harga</span><span class="val">$${price.toFixed(2)}</span></div>
+        <div class="signal-row"><span class="key">ATR M5</span><span class="val">${atr.toFixed(2)}</span></div>
+      </div>`;
+  }
+}
+
+// ============================================================
+// LOT CALCULATOR
+// ============================================================
+function calcLot() {
+  const modal = parseFloat(document.getElementById('modalInput').value) || 1000;
+  const risiko = parseFloat(document.getElementById('risikoInput').value) || 1;
+  const slPips = parseFloat(document.getElementById('slInput').value) || (state.atr ? state.atr * 1.5 : 15);
+  const tpPips = parseFloat(document.getElementById('tpInput').value) || (state.atr ? state.atr * 2 : 20);
+
+  const risikoUsd = modal * (risiko / 100);
+  // XAU/USD: 1 pip = $1 per 0.01 lot → $10 per 0.1 lot
+  const lot = (risikoUsd / (slPips * 10));
+  const lotRound = Math.max(0.01, Math.round(lot * 100) / 100);
+  const rr = (tpPips / slPips).toFixed(1);
+  const profitIfWin = (lotRound * tpPips * 10).toFixed(2);
+
+  document.getElementById('lotValue').textContent = lotRound.toFixed(2) + ' Lot';
+  document.getElementById('lotInfo').textContent = `Risiko $${risikoUsd.toFixed(0)} · R:R 1:${rr} · Profit $${profitIfWin}`;
+}
+
+// ============================================================
+// AI TUTOR CHAT
+// ============================================================
+function quickAsk(q) {
+  document.getElementById('chatInput').value = q;
+  sendChat();
+}
+
+function sendChat() {
+  const input = document.getElementById('chatInput');
+  const msg = input.value.trim();
+  if (!msg) return;
+  input.value = '';
+  appendMsg('user', msg);
+  setTimeout(() => {
+    showTyping();
+    setTimeout(() => {
+      removeTyping();
+      const reply = generateReply(msg);
+      appendMsg('bot', reply);
+    }, 800 + Math.random() * 600);
+  }, 100);
+}
+
+function appendMsg(role, text) {
+  const container = document.getElementById('chatMessages');
+  const div = document.createElement('div');
+  div.className = `msg ${role}`;
+  div.innerHTML = `<div class="msg-bubble">${text}</div><div class="msg-time">${getWIBTime()}</div>`;
+  container.appendChild(div);
+  container.scrollTop = container.scrollHeight;
+}
+
+let typingEl = null;
+function showTyping() {
+  const container = document.getElementById('chatMessages');
+  typingEl = document.createElement('div');
+  typingEl.className = 'msg bot';
+  typingEl.innerHTML = `<div class="msg-bubble"><div class="typing"><span></span><span></span><span></span></div></div>`;
+  container.appendChild(typingEl);
+  container.scrollTop = container.scrollHeight;
+}
+function removeTyping() {
+  if (typingEl) { typingEl.remove(); typingEl = null; }
+}
+
+// ============================================================
+// REPLY ENGINE
+// ============================================================
+function generateReply(msg) {
+  const m = msg.toLowerCase();
+  const p = state.price;
+  const rsiH1 = state.rsi.h1;
+  const rsiM15 = state.rsi.m15;
+  const rsiM5 = state.rsi.m5;
+  const biasH1 = state.bias.h1;
+  const biasM5 = state.bias.m5;
+  const atr = state.atr;
+  const hour = getWIBHour();
+  const hasData = p !== null;
+
+  // Sesi trading
+  const inLondon = hour >= 14 && hour < 18;
+  const inNY = hour >= 19 && hour < 24;
+  const inAsia = hour >= 2 && hour < 9;
+  const sesiNow = inLondon ? 'London 🇬🇧' : inNY ? 'New York 🇺🇸' : inAsia ? 'Asia 🌏' : 'Transisi';
+
+  // --- BIAS ---
+  if (m.includes('bias')) {
+    if (!hasData) return `Lo belum scan bro! Klik ⚡ Scan dulu biar gw bisa kasih bias real-time.`;
+    const b = biasH1 || '–';
+    const b5 = biasM5 || '–';
+    const r1 = rsiH1 ? rsiH1.toFixed(1) : '–';
+    const r5 = rsiM5 ? rsiM5.toFixed(1) : '–';
+    return `📊 Bias sekarang:\n• H1: ${b} (RSI ${r1})\n• M5: ${b5} (RSI ${r5})\n\n${b === b5 ? '✅ H1 & M5 align — bagus buat entry!' : '⚠️ H1 & M5 conflicting — skip dulu atau tunggu konfirmasi.'}`;
+  }
+
+  // --- WAKTU SCALP ---
+  if (m.includes('waktu') || m.includes('scalp') || m.includes('sesi')) {
+    return `⏰ Sesi terbaik XAU scalping:\n• 14:00–17:00 WIB → London Open 🔥 (volatile banget)\n• 19:30–22:00 WIB → NY Open 🔥🔥 (paling bagus)\n• 20:30–21:30 WIB → NY+London overlap ⚡\n\nSekarang sesi: ${sesiNow}\n${(inLondon || inNY) ? '✅ Kondisi bagus buat scalp!' : '⚠️ Di luar sesi utama — hati-hati spread lebar.'}`;
+  }
+
+  // --- SETUP HARI INI ---
+  if (m.includes('setup') || m.includes('hari ini')) {
+    if (!hasData) return `Scan dulu bro biar gw tau kondisi market sekarang. Klik ⚡ Scan!`;
+    const bull = [biasH1, state.bias.m15, biasM5].filter(b => b === 'BULLISH').length;
+    const bear = [biasH1, state.bias.m15, biasM5].filter(b => b === 'BEARISH').length;
+    const dir = bull >= bear ? 'BUY' 🟢 : 'SELL 🔴';
+    const conf = Math.max(bull, bear);
+    return `🎯 Setup hari ini:\n• Arah dominan: ${dir}\n• Confluence: ${conf}/3 TF\n• Harga: $${p.toFixed(2)}\n• ATR M5: ${atr ? atr.toFixed(2) : '–'} pts\n\n${conf === 3 ? '✅ Full confluence! Bagus buat entry.' : conf === 2 ? '⚠️ Partial confluence. Tunggu M5 konfirmasi.' : '❌ Tidak ada setup jelas. Skip!'}`;
+  }
+
+  // --- RSI ---
+  if (m.includes('rsi')) {
+    if (!hasData) return `Scan dulu ya bro! RSI baru bisa dikalkulasi setelah scan.`;
+    return `📉 RSI sekarang:\n• H1: ${rsiH1 ? rsiH1.toFixed(1) : '–'} ${rsiH1 > 70 ? '(Overbought ⚠️)' : rsiH1 < 30 ? '(Oversold ⚠️)' : '(Normal)'}\n• M15: ${rsiM15 ? rsiM15.toFixed(1) : '–'} ${rsiM15 > 70 ? '(Overbought)' : rsiM15 < 30 ? '(Oversold)' : '(Normal)'}\n• M5: ${rsiM5 ? rsiM5.toFixed(1) : '–'} ${rsiM5 > 70 ? '(Overbought)' : rsiM5 < 30 ? '(Oversold)' : '(Normal)'}`;
+  }
+
+  // --- SL ---
+  if (m.includes('sl') || m.includes('stop loss')) {
+    if (!hasData) return `Scan dulu ya bro! SL ideal dihitung dari ATR setelah scan.`;
+    const slIdeal = atr ? (atr * 1.5).toFixed(2) : '–';
+    const slConservative = atr ? (atr * 2).toFixed(2) : '–';
+    return `🛡️ SL ideal XAU/USD berdasarkan ATR M5:\n• Aggressive: ${slIdeal} pts (1.5x ATR)\n• Conservative: ${slConservative} pts (2x ATR)\n\nATR M5 sekarang: ${atr ? atr.toFixed(2) : '–'}\n\nTips: Jangan SL di bawah 10 pts buat XAU — spread bisa kena.`;
+  }
+
+  // --- SPIKE / VOLATILITY ---
+  if (m.includes('spike') || m.includes('volatil') || m.includes('kenapa')) {
+    return `⚡ Penyebab spike XAU/USD:\n• 📰 News fundamental (NFP, CPI, FOMC)\n• 🏦 Bank sentral naik/turun suku bunga\n• 🌍 Geopolitik (war, krisis)\n• 💵 DXY (Dollar Index) movement\n• 🕐 Overlap sesi London+NY\n\nSaran: Cek calendar.forex.com tiap hari sebelum trading!`;
+  }
+
+  // --- HARGA ---
+  if (m.includes('harga') || m.includes('price') || m.includes('berapa')) {
+    if (!hasData) return `Belum ada data harga bro. Klik ⚡ Scan dulu!`;
+    return `💰 Harga XAU sekarang: $${p.toFixed(2)}\n• High 24h: $${state.high24 ? state.high24.toFixed(2) : '–'}\n• Low 24h: $${state.low24 ? state.low24.toFixed(2) : '–'}`;
+  }
+
+  // --- RISK MANAGEMENT ---
+  if (m.includes('risk') || m.includes('manajemen') || m.includes('modal')) {
+    return `💼 Risk management XAU:\n• Max risiko per trade: 1-2% modal\n• Lot 0.01 = risiko $1 per 10 pts SL\n• Jangan over-leverage!\n• Gunakan kalkulator lot di atas 👆\n\nRule #1: Protect capital dulu, profit belakangan.`;
+  }
+
+  // --- GREETINGS ---
+  if (m.includes('halo') || m.includes('hai') || m.includes('hello') || m.includes('oi')) {
+    return `Halo bro! Siap bantu analisis gold nih. Mau tanya soal apa? Signal, bias, SL, atau kondisi market sekarang? ⚡`;
+  }
+
+  // --- DEFAULT ---
+  return `Gw belum ngerti maksud lo bro 😅 Coba tanya soal:\n• Bias / arah market\n• Setup entry hari ini\n• SL ideal\n• Waktu scalp terbaik\n• RSI sekarang\n• Kenapa spike\n\nOr klik quick button di bawah 👇`;
+}
+
+// ============================================================
+// AUTO REFRESH
+// ============================================================
+setInterval(runScan, 30000);
+
+// ============================================================
+// INIT
+// ============================================================
+window.onload = () => {
+  calcLot();
+  runScan();
+  if (!state.sessionStart) {
+    const now = new Date();
+    const wib = new Date(now.getTime() + 7 * 3600000);
+    state.sessionStart = `${String(wib.getUTCHours()).padStart(2,'0')}:${String(wib.getUTCMinutes()).padStart(2,'0')}`;
+    document.getElementById('wrSession').textContent = `Session: ${state.sessionStart}`;
+  }
+};
+</script>
+</body>
+</html>
