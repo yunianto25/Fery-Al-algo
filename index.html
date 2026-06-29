@@ -1,0 +1,741 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<title>FERY GOLD SCANNER</title>
+<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;600&display=swap" rel="stylesheet"/>
+<style>
+  :root {
+    --gold:    #D4A843;
+    --gold2:   #F0C050;
+    --bg:      #080C12;
+    --surface: #0E1420;
+    --card:    #121A28;
+    --border:  #1E2A3A;
+    --bull:    #22C55E;
+    --bear:    #EF4444;
+    --text:    #E2E8F0;
+    --muted:   #64748B;
+    --tp:      #34D399;
+    --sl:      #F87171;
+  }
+  * { margin:0; padding:0; box-sizing:border-box; }
+  body {
+    background: var(--bg);
+    color: var(--text);
+    font-family: 'Space Grotesk', sans-serif;
+    min-height: 100vh;
+    overflow-x: hidden;
+  }
+
+  /* ── HEADER ── */
+  header {
+    background: var(--surface);
+    border-bottom: 1px solid var(--border);
+    padding: 14px 20px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    position: sticky;
+    top: 0;
+    z-index: 100;
+  }
+  .logo {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+  }
+  .logo-icon {
+    width: 32px; height: 32px;
+    background: linear-gradient(135deg, var(--gold), var(--gold2));
+    border-radius: 8px;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 16px;
+  }
+  .logo-text { font-size: 15px; font-weight: 700; letter-spacing: 1px; color: var(--gold); }
+  .logo-sub  { font-size: 10px; color: var(--muted); letter-spacing: 2px; text-transform: uppercase; }
+
+  .live-badge {
+    display: flex; align-items: center; gap: 6px;
+    font-size: 11px; font-weight: 600; color: var(--bull);
+    letter-spacing: 1px;
+  }
+  .live-dot {
+    width: 7px; height: 7px;
+    background: var(--bull);
+    border-radius: 50%;
+    animation: pulse 1.5s infinite;
+  }
+  @keyframes pulse {
+    0%,100% { opacity:1; transform:scale(1); }
+    50%      { opacity:.4; transform:scale(1.4); }
+  }
+
+  /* ── PRICE HERO ── */
+  .price-hero {
+    background: linear-gradient(160deg, #0E1420 0%, #0A1020 100%);
+    border-bottom: 1px solid var(--border);
+    padding: 20px;
+    text-align: center;
+  }
+  .price-label { font-size: 11px; color: var(--muted); letter-spacing: 2px; text-transform: uppercase; margin-bottom: 6px; }
+  .price-main  { font-family: 'JetBrains Mono', monospace; font-size: 38px; font-weight: 600; color: var(--gold2); line-height: 1; }
+  .price-change {
+    display: inline-flex; align-items: center; gap: 4px;
+    font-size: 13px; font-weight: 600; margin-top: 6px;
+    padding: 3px 10px; border-radius: 20px;
+  }
+  .price-change.up   { background: rgba(34,197,94,.15); color: var(--bull); }
+  .price-change.down { background: rgba(239,68,68,.15);  color: var(--bear); }
+
+  .price-meta {
+    display: flex; justify-content: center; gap: 24px;
+    margin-top: 12px;
+  }
+  .price-meta-item { text-align: center; }
+  .price-meta-item .val { font-family: 'JetBrains Mono', monospace; font-size: 13px; color: var(--text); }
+  .price-meta-item .lbl { font-size: 10px; color: var(--muted); margin-top: 2px; }
+
+  /* ── MAIN ── */
+  main { padding: 16px; max-width: 480px; margin: 0 auto; }
+
+  /* ── BIAS GRID ── */
+  .section-title {
+    font-size: 11px; font-weight: 600; color: var(--muted);
+    letter-spacing: 2px; text-transform: uppercase;
+    margin-bottom: 10px; margin-top: 20px;
+  }
+  .bias-grid {
+    display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px;
+    margin-bottom: 4px;
+  }
+  .bias-card {
+    background: var(--card);
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    padding: 12px 8px;
+    text-align: center;
+    transition: border-color .3s;
+  }
+  .bias-card.bull { border-color: rgba(34,197,94,.4); }
+  .bias-card.bear { border-color: rgba(239,68,68,.4); }
+  .bias-tf   { font-size: 11px; color: var(--muted); letter-spacing: 1px; margin-bottom: 6px; }
+  .bias-dir  { font-size: 18px; margin-bottom: 4px; }
+  .bias-text { font-size: 12px; font-weight: 700; letter-spacing: .5px; }
+  .bull-text { color: var(--bull); }
+  .bear-text { color: var(--bear); }
+  .neu-text  { color: var(--muted); }
+
+  /* ── CONFLUENCE BAR ── */
+  .confluence-bar {
+    background: var(--card);
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    padding: 12px 16px;
+    margin-bottom: 4px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+  }
+  .conf-label { font-size: 12px; color: var(--muted); }
+  .conf-dots  { display: flex; gap: 6px; }
+  .conf-dot   { width: 10px; height: 10px; border-radius: 50%; background: var(--border); }
+  .conf-dot.active-bull { background: var(--bull); box-shadow: 0 0 6px var(--bull); }
+  .conf-dot.active-bear { background: var(--bear); box-shadow: 0 0 6px var(--bear); }
+  .conf-score { font-size: 13px; font-weight: 700; }
+
+  /* ── SIGNAL CARD ── */
+  .signal-card {
+    border-radius: 14px;
+    padding: 18px;
+    margin-bottom: 12px;
+    position: relative;
+    overflow: hidden;
+    border: 1px solid transparent;
+    transition: all .3s;
+  }
+  .signal-card.buy  {
+    background: linear-gradient(135deg, #0D1E16, #0E2018);
+    border-color: rgba(34,197,94,.35);
+  }
+  .signal-card.sell {
+    background: linear-gradient(135deg, #1E0D0D, #200E0E);
+    border-color: rgba(239,68,68,.35);
+  }
+  .signal-card.neutral {
+    background: var(--card);
+    border-color: var(--border);
+  }
+  .signal-card::before {
+    content: '';
+    position: absolute; left: 0; top: 0; bottom: 0;
+    width: 3px;
+  }
+  .signal-card.buy::before  { background: var(--bull); }
+  .signal-card.sell::before { background: var(--bear); }
+
+  .sig-header {
+    display: flex; align-items: center; gap: 10px; margin-bottom: 14px;
+  }
+  .sig-badge {
+    padding: 4px 12px; border-radius: 6px;
+    font-size: 12px; font-weight: 800; letter-spacing: 1px;
+  }
+  .sig-badge.buy  { background: rgba(34,197,94,.2);  color: var(--bull); border: 1px solid rgba(34,197,94,.4); }
+  .sig-badge.sell { background: rgba(239,68,68,.2);  color: var(--bear); border: 1px solid rgba(239,68,68,.4); }
+  .sig-badge.wait { background: rgba(100,116,139,.2); color: var(--muted); border: 1px solid var(--border); }
+
+  .sig-pair  { font-size: 16px; font-weight: 700; }
+  .sig-pips  {
+    margin-left: auto;
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 13px; font-weight: 600; color: var(--gold);
+    background: rgba(212,168,67,.1);
+    padding: 3px 10px; border-radius: 6px;
+  }
+
+  .sig-reason {
+    font-size: 12px; color: var(--muted);
+    line-height: 1.5; margin-bottom: 14px;
+  }
+
+  .sig-levels {
+    display: grid; grid-template-columns: repeat(3, 1fr);
+    gap: 8px;
+  }
+  .sig-level { text-align: center; }
+  .sig-level .lv-label { font-size: 10px; color: var(--muted); margin-bottom: 4px; letter-spacing: .5px; }
+  .sig-level .lv-val   { font-family: 'JetBrains Mono', monospace; font-size: 14px; font-weight: 600; }
+  .lv-entry { color: var(--text); }
+  .lv-tp    { color: var(--tp); }
+  .lv-sl    { color: var(--sl); }
+
+  .sig-divider { height: 1px; background: var(--border); margin: 12px 0; }
+
+  .sig-tp-row {
+    display: grid; grid-template-columns: 1fr 1fr;
+    gap: 8px; margin-top: 10px;
+  }
+  .sig-tp-box {
+    background: rgba(0,0,0,.2);
+    border-radius: 8px; padding: 8px 10px; text-align: center;
+  }
+  .sig-tp-box .tp-label { font-size: 10px; color: var(--muted); margin-bottom: 3px; }
+  .sig-tp-box .tp-val   { font-family: 'JetBrains Mono', monospace; font-size: 13px; font-weight: 600; color: var(--tp); }
+  .sig-tp-box .tp-pips  { font-size: 10px; color: var(--muted); margin-top: 2px; }
+
+  /* ── WAITING STATE ── */
+  .waiting-state {
+    text-align: center; padding: 30px 20px;
+  }
+  .waiting-icon { font-size: 36px; margin-bottom: 12px; opacity: .4; }
+  .waiting-title { font-size: 15px; font-weight: 600; color: var(--muted); margin-bottom: 6px; }
+  .waiting-sub   { font-size: 12px; color: var(--muted); opacity: .6; }
+
+  /* ── LOT CALC ── */
+  .lot-calc {
+    background: var(--card);
+    border: 1px solid var(--border);
+    border-radius: 14px;
+    padding: 18px;
+    margin-bottom: 12px;
+  }
+  .lot-title { font-size: 13px; font-weight: 700; color: var(--gold); margin-bottom: 14px; }
+  .lot-inputs { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-bottom: 14px; }
+  .lot-field label { font-size: 10px; color: var(--muted); display: block; margin-bottom: 5px; letter-spacing: .5px; }
+  .lot-field input {
+    width: 100%;
+    background: var(--bg);
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    padding: 9px 12px;
+    color: var(--text);
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 14px;
+    outline: none;
+  }
+  .lot-field input:focus { border-color: var(--gold); }
+  .lot-result {
+    display: flex; align-items: center; justify-content: space-between;
+    background: rgba(212,168,67,.08);
+    border: 1px solid rgba(212,168,67,.2);
+    border-radius: 10px; padding: 12px 16px;
+  }
+  .lot-result-label { font-size: 12px; color: var(--muted); }
+  .lot-result-val   { font-family: 'JetBrains Mono', monospace; font-size: 20px; font-weight: 700; color: var(--gold); }
+
+  /* ── FOOTER ── */
+  footer {
+    text-align: center; padding: 20px;
+    font-size: 11px; color: var(--muted);
+    border-top: 1px solid var(--border);
+    margin-top: 10px;
+  }
+
+  /* ── REFRESH ── */
+  .refresh-info {
+    text-align: center; font-size: 11px; color: var(--muted);
+    margin-bottom: 16px;
+  }
+  .refresh-info span { color: var(--gold); font-family: 'JetBrains Mono', monospace; }
+
+  /* ── SCAN BTN ── */
+  .scan-btn {
+    display: block; width: 100%;
+    background: linear-gradient(135deg, var(--gold), var(--gold2));
+    color: #080C12;
+    border: none; border-radius: 12px;
+    padding: 14px;
+    font-family: 'Space Grotesk', sans-serif;
+    font-size: 14px; font-weight: 700; letter-spacing: 1px;
+    cursor: pointer;
+    margin-bottom: 16px;
+    transition: opacity .2s;
+  }
+  .scan-btn:hover { opacity: .85; }
+  .scan-btn:disabled { opacity: .5; cursor: not-allowed; }
+
+  .spinner {
+    display: inline-block; width: 14px; height: 14px;
+    border: 2px solid rgba(0,0,0,.3);
+    border-top-color: #080C12;
+    border-radius: 50%;
+    animation: spin .7s linear infinite;
+    vertical-align: middle; margin-right: 6px;
+  }
+  @keyframes spin { to { transform: rotate(360deg); } }
+</style>
+</head>
+<body>
+
+<!-- HEADER -->
+<header>
+  <div class="logo">
+    <div class="logo-icon">⚡</div>
+    <div>
+      <div class="logo-text">FERY GOLD</div>
+      <div class="logo-sub">MTF Signal Scanner</div>
+    </div>
+  </div>
+  <div class="live-badge">
+    <div class="live-dot"></div>
+    LIVE
+  </div>
+</header>
+
+<!-- PRICE HERO -->
+<div class="price-hero">
+  <div class="price-label">XAU / USD · PAXG Live</div>
+  <div class="price-main" id="priceMain">––––.––</div>
+  <div id="priceChange" class="price-change up">– –.–– (–.––%)</div>
+  <div class="price-meta">
+    <div class="price-meta-item">
+      <div class="val" id="priceHigh">–</div>
+      <div class="lbl">High</div>
+    </div>
+    <div class="price-meta-item">
+      <div class="val" id="priceLow">–</div>
+      <div class="lbl">Low</div>
+    </div>
+    <div class="price-meta-item">
+      <div class="val" id="priceVol">–</div>
+      <div class="lbl">Volume</div>
+    </div>
+  </div>
+</div>
+
+<main>
+
+  <!-- SCAN BUTTON -->
+  <button class="scan-btn" id="scanBtn" onclick="runScan()">⚡ Scan Sinyal Sekarang</button>
+
+  <div class="refresh-info">Auto refresh tiap <span>30 detik</span> · Last update: <span id="lastUpdate">–</span></div>
+
+  <!-- BIAS SECTION -->
+  <div class="section-title">📊 Multi-Timeframe Bias</div>
+  <div class="bias-grid">
+    <div class="bias-card" id="biasH1">
+      <div class="bias-tf">H1</div>
+      <div class="bias-dir" id="biasH1Icon">–</div>
+      <div class="bias-text" id="biasH1Text">–</div>
+    </div>
+    <div class="bias-card" id="biasM15">
+      <div class="bias-tf">M15</div>
+      <div class="bias-dir" id="biasM15Icon">–</div>
+      <div class="bias-text" id="biasM15Text">–</div>
+    </div>
+    <div class="bias-card" id="biasM5">
+      <div class="bias-tf">M5</div>
+      <div class="bias-dir" id="biasM5Icon">–</div>
+      <div class="bias-text" id="biasM5Text">–</div>
+    </div>
+  </div>
+
+  <!-- CONFLUENCE BAR -->
+  <div class="confluence-bar" style="margin-top:8px;">
+    <div>
+      <div class="conf-label">Confluence Strength</div>
+    </div>
+    <div class="conf-dots">
+      <div class="conf-dot" id="dot0"></div>
+      <div class="conf-dot" id="dot1"></div>
+      <div class="conf-dot" id="dot2"></div>
+    </div>
+    <div class="conf-score" id="confScore">–/3</div>
+  </div>
+
+  <!-- SIGNAL SECTION -->
+  <div class="section-title" style="margin-top:20px;">🎯 Signal Entry</div>
+  <div id="signalContainer">
+    <div class="signal-card neutral">
+      <div class="waiting-state">
+        <div class="waiting-icon">🔍</div>
+        <div class="waiting-title">Belum ada sinyal</div>
+        <div class="waiting-sub">Klik Scan untuk analisa market</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- LOT CALCULATOR -->
+  <div class="section-title">🧮 Kalkulator Lot</div>
+  <div class="lot-calc">
+    <div class="lot-title">💰 Manajemen Risiko</div>
+    <div class="lot-inputs">
+      <div class="lot-field">
+        <label>MODAL AKUN ($)</label>
+        <input type="number" id="modal" value="1000" oninput="calcLot()"/>
+      </div>
+      <div class="lot-field">
+        <label>RISIKO MAX (%)</label>
+        <input type="number" id="risiko" value="2" oninput="calcLot()"/>
+      </div>
+    </div>
+    <div class="lot-result">
+      <div class="lot-result-label">Rekomendasi Lot XAU/USD</div>
+      <div class="lot-result-val" id="lotResult">0.02</div>
+    </div>
+  </div>
+
+</main>
+
+<footer>
+  © 2026 Fery Gold Scanner · Data: Binance PAXG/USDT<br/>
+  <span style="color:#3D4F63;font-size:10px;">Bukan saran investasi. Gunakan dengan manajemen risiko.</span>
+</footer>
+
+<script>
+// ══════════════════════════════════════════════
+// STATE
+// ══════════════════════════════════════════════
+let ws = null;
+let currentPrice = 0;
+let open24h = 0;
+let high24h = 0;
+let low24h  = 0;
+let vol24h  = 0;
+let candles = { "1h": [], "15m": [], "5m": [] };
+let scanInterval = null;
+
+// ══════════════════════════════════════════════
+// CONNECT WEBSOCKET (live price)
+// ══════════════════════════════════════════════
+function connectWS() {
+  ws = new WebSocket("wss://stream.binance.com:9443/ws/paxgusdt@ticker");
+  ws.onmessage = (e) => {
+    const d = JSON.parse(e.data);
+    currentPrice = parseFloat(d.c);
+    open24h = parseFloat(d.o);
+    high24h = parseFloat(d.h);
+    low24h  = parseFloat(d.l);
+    vol24h  = parseFloat(d.v);
+    updatePriceUI();
+  };
+  ws.onclose = () => setTimeout(connectWS, 3000);
+}
+
+function updatePriceUI() {
+  const change = currentPrice - open24h;
+  const pct    = (change / open24h * 100);
+  document.getElementById("priceMain").textContent = currentPrice.toFixed(2);
+  const el = document.getElementById("priceChange");
+  el.textContent = `${change >= 0 ? "+" : ""}${change.toFixed(2)} (${pct.toFixed(2)}%)`;
+  el.className = `price-change ${change >= 0 ? "up" : "down"}`;
+  document.getElementById("priceHigh").textContent = high24h.toFixed(2);
+  document.getElementById("priceLow").textContent  = low24h.toFixed(2);
+  document.getElementById("priceVol").textContent  = vol24h.toFixed(0);
+}
+
+// ══════════════════════════════════════════════
+// FETCH CANDLES
+// ══════════════════════════════════════════════
+async function fetchCandles(interval, limit = 50) {
+  const url = `https://api.binance.com/api/v3/klines?symbol=PAXGUSDT&interval=${interval}&limit=${limit}`;
+  const r = await fetch(url);
+  const data = await r.json();
+  return data.map(c => ({
+    time:  c[0],
+    open:  parseFloat(c[1]),
+    high:  parseFloat(c[2]),
+    low:   parseFloat(c[3]),
+    close: parseFloat(c[4]),
+  }));
+}
+
+// ══════════════════════════════════════════════
+// EMA CALCULATION
+// ══════════════════════════════════════════════
+function calcEMA(closes, period) {
+  const k = 2 / (period + 1);
+  let ema = closes[0];
+  for (let i = 1; i < closes.length; i++) {
+    ema = closes[i] * k + ema * (1 - k);
+  }
+  return ema;
+}
+
+function getBias(candles) {
+  if (candles.length < 21) return "neutral";
+  const closes = candles.map(c => c.close);
+  const ema9  = calcEMA(closes, 9);
+  const ema21 = calcEMA(closes, 21);
+  return ema9 > ema21 ? "bull" : "bear";
+}
+
+// RSI
+function calcRSI(candles, period = 14) {
+  if (candles.length < period + 1) return 50;
+  let gains = 0, losses = 0;
+  for (let i = candles.length - period; i < candles.length; i++) {
+    const d = candles[i].close - candles[i-1].close;
+    if (d > 0) gains += d; else losses -= d;
+  }
+  const rs = gains / (losses || 0.001);
+  return 100 - (100 / (1 + rs));
+}
+
+// ══════════════════════════════════════════════
+// SIGNAL ENGINE
+// ══════════════════════════════════════════════
+function generateSignal(biasH1, biasM15, biasM5, rsiM5, price) {
+  const SL  = 1.20;
+  const TP1 = 1.80;
+  const TP2 = 3.00;
+
+  // All 3 TF aligned BUY
+  if (biasH1 === "bull" && biasM15 === "bull" && biasM5 === "bull" && rsiM5 > 50) {
+    return {
+      dir: "buy",
+      reason: "MTF Confluence BULL: H1 + M15 + M5 semua EMA 9 di atas EMA 21. RSI M5 konfirmasi momentum naik.",
+      entry: price,
+      sl:   price - SL,
+      tp1:  price + TP1,
+      tp2:  price + TP2,
+      pipsSL:  (SL * 100).toFixed(0),
+      pipsTP2: (TP2 * 100).toFixed(0),
+      confluence: 3,
+    };
+  }
+  // All 3 TF aligned SELL
+  if (biasH1 === "bear" && biasM15 === "bear" && biasM5 === "bear" && rsiM5 < 50) {
+    return {
+      dir: "sell",
+      reason: "MTF Confluence BEAR: H1 + M15 + M5 semua EMA 9 di bawah EMA 21. RSI M5 konfirmasi momentum turun.",
+      entry: price,
+      sl:   price + SL,
+      tp1:  price - TP1,
+      tp2:  price - TP2,
+      pipsSL:  (SL * 100).toFixed(0),
+      pipsTP2: (TP2 * 100).toFixed(0),
+      confluence: 3,
+    };
+  }
+  // H1+M15 BUY, waiting M5
+  if (biasH1 === "bull" && biasM15 === "bull" && biasM5 !== "bull") {
+    return { dir: "wait_buy", confluence: 2 };
+  }
+  // H1+M15 SELL, waiting M5
+  if (biasH1 === "bear" && biasM15 === "bear" && biasM5 !== "bear") {
+    return { dir: "wait_sell", confluence: 2 };
+  }
+
+  return { dir: "none", confluence: biasH1 === biasM15 ? 1 : 0 };
+}
+
+// ══════════════════════════════════════════════
+// UI UPDATERS
+// ══════════════════════════════════════════════
+function updateBiasCard(id, iconId, textId, bias) {
+  const card = document.getElementById(id);
+  const icon = document.getElementById(iconId);
+  const text = document.getElementById(textId);
+  card.className = `bias-card ${bias}`;
+  if (bias === "bull") {
+    icon.textContent = "▲";
+    text.textContent = "BULL";
+    text.className = "bias-text bull-text";
+  } else if (bias === "bear") {
+    icon.textContent = "▼";
+    text.textContent = "BEAR";
+    text.className = "bias-text bear-text";
+  } else {
+    icon.textContent = "–";
+    text.textContent = "NETRAL";
+    text.className = "bias-text neu-text";
+  }
+}
+
+function updateConfluence(score, dir) {
+  const cls = dir === "buy" || dir === "wait_buy" ? "active-bull" : dir === "sell" || dir === "wait_sell" ? "active-bear" : "";
+  for (let i = 0; i < 3; i++) {
+    const dot = document.getElementById(`dot${i}`);
+    dot.className = "conf-dot" + (i < score && cls ? ` ${cls}` : "");
+  }
+  document.getElementById("confScore").textContent = `${score}/3`;
+  document.getElementById("confScore").style.color = cls === "active-bull" ? "var(--bull)" : cls === "active-bear" ? "var(--bear)" : "var(--muted)";
+}
+
+function renderSignal(sig, price) {
+  const el = document.getElementById("signalContainer");
+
+  if (sig.dir === "buy" || sig.dir === "sell") {
+    const isBuy = sig.dir === "buy";
+    el.innerHTML = `
+      <div class="signal-card ${sig.dir}">
+        <div class="sig-header">
+          <div class="sig-badge ${sig.dir}">${isBuy ? "▲ BUY" : "▼ SELL"}</div>
+          <div class="sig-pair">XAU/USD</div>
+          <div class="sig-pips">+${sig.pipsTP2} pips</div>
+        </div>
+        <div class="sig-reason">${sig.reason}</div>
+        <div class="sig-levels">
+          <div class="sig-level">
+            <div class="lv-label">ENTRY</div>
+            <div class="lv-val lv-entry">$${sig.entry.toFixed(2)}</div>
+          </div>
+          <div class="sig-level">
+            <div class="lv-label">RESIKO SL</div>
+            <div class="lv-val lv-sl">$${sig.sl.toFixed(2)}</div>
+          </div>
+          <div class="sig-level">
+            <div class="lv-label">RR RATIO</div>
+            <div class="lv-val" style="color:var(--gold)">1 : 2.5</div>
+          </div>
+        </div>
+        <div class="sig-divider"></div>
+        <div class="sig-tp-row">
+          <div class="sig-tp-box">
+            <div class="tp-label">TARGET TP1</div>
+            <div class="tp-val">$${sig.tp1.toFixed(2)}</div>
+            <div class="tp-pips">+180 pips</div>
+          </div>
+          <div class="sig-tp-box">
+            <div class="tp-label">TARGET TP2</div>
+            <div class="tp-val">$${sig.tp2.toFixed(2)}</div>
+            <div class="tp-pips">+300 pips</div>
+          </div>
+        </div>
+      </div>`;
+  } else if (sig.dir === "wait_buy") {
+    el.innerHTML = `
+      <div class="signal-card neutral" style="border-color:rgba(212,168,67,.3)">
+        <div class="sig-header">
+          <div class="sig-badge wait">⏳ WAIT BUY</div>
+          <div class="sig-pair">XAU/USD</div>
+        </div>
+        <div class="sig-reason" style="color:var(--gold);opacity:.8">H1 + M15 BULL confirmed. Tunggu M5 EMA 9 cross ke atas EMA 21 untuk entry BUY.</div>
+      </div>`;
+  } else if (sig.dir === "wait_sell") {
+    el.innerHTML = `
+      <div class="signal-card neutral" style="border-color:rgba(212,168,67,.3)">
+        <div class="sig-header">
+          <div class="sig-badge wait">⏳ WAIT SELL</div>
+          <div class="sig-pair">XAU/USD</div>
+        </div>
+        <div class="sig-reason" style="color:var(--gold);opacity:.8">H1 + M15 BEAR confirmed. Tunggu M5 EMA 9 cross ke bawah EMA 21 untuk entry SELL.</div>
+      </div>`;
+  } else {
+    el.innerHTML = `
+      <div class="signal-card neutral">
+        <div class="waiting-state">
+          <div class="waiting-icon">⚠️</div>
+          <div class="waiting-title">Tidak ada confluence</div>
+          <div class="waiting-sub">TF besar tidak aligned. Hindari entry sekarang.</div>
+        </div>
+      </div>`;
+  }
+}
+
+// ══════════════════════════════════════════════
+// MAIN SCAN
+// ══════════════════════════════════════════════
+async function runScan() {
+  const btn = document.getElementById("scanBtn");
+  btn.disabled = true;
+  btn.innerHTML = '<span class="spinner"></span>Scanning...';
+
+  try {
+    const [c1h, c15m, c5m] = await Promise.all([
+      fetchCandles("1h", 50),
+      fetchCandles("15m", 50),
+      fetchCandles("5m",  50),
+    ]);
+
+    const biasH1  = getBias(c1h);
+    const biasM15 = getBias(c15m);
+    const biasM5  = getBias(c5m);
+    const rsiM5   = calcRSI(c5m);
+
+    updateBiasCard("biasH1",  "biasH1Icon",  "biasH1Text",  biasH1);
+    updateBiasCard("biasM15", "biasM15Icon", "biasM15Text", biasM15);
+    updateBiasCard("biasM5",  "biasM5Icon",  "biasM5Text",  biasM5);
+
+    const price = currentPrice || parseFloat(c5m[c5m.length-1].close);
+    const sig   = generateSignal(biasH1, biasM15, biasM5, rsiM5, price);
+
+    updateConfluence(sig.confluence, sig.dir);
+    renderSignal(sig, price);
+    calcLot();
+
+    const now = new Date();
+    document.getElementById("lastUpdate").textContent =
+      now.toLocaleTimeString("id-ID", { hour:"2-digit", minute:"2-digit", second:"2-digit" });
+
+  } catch(err) {
+    document.getElementById("signalContainer").innerHTML = `
+      <div class="signal-card neutral">
+        <div class="waiting-state">
+          <div class="waiting-icon">❌</div>
+          <div class="waiting-title">Gagal fetch data</div>
+          <div class="waiting-sub">Cek koneksi internet lalu coba lagi.</div>
+        </div>
+      </div>`;
+  }
+
+  btn.disabled = false;
+  btn.innerHTML = "⚡ Scan Sinyal Sekarang";
+}
+
+// ══════════════════════════════════════════════
+// LOT CALCULATOR
+// ══════════════════════════════════════════════
+function calcLot() {
+  const modal  = parseFloat(document.getElementById("modal").value)  || 1000;
+  const risiko = parseFloat(document.getElementById("risiko").value) || 2;
+  const slDolar = 1.20;
+  const risikoNominal = modal * (risiko / 100);
+  // 1 lot XAU = $1/pip, sl = 120 pips = $120/lot
+  const lot = (risikoNominal / (slDolar * 100)).toFixed(2);
+  document.getElementById("lotResult").textContent = lot + " Lot";
+}
+
+// ══════════════════════════════════════════════
+// INIT
+// ══════════════════════════════════════════════
+connectWS();
+runScan();
+scanInterval = setInterval(runScan, 30000);
+calcLot();
+</script>
+</body>
+</html>
