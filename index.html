@@ -1,816 +1,681 @@
 <!DOCTYPE html>
 <html lang="id">
 <head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>FERY GOLD · MTF Signal Scanner</title>
-<style>
-  @import url('https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;600;700&family=JetBrains+Mono:wght@400;600&display=swap');
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>FERY ALGO PRO v2</title>
+  <style>
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body {
+      min-height: 100vh;
+      background: #080808;
+      color: #E5E7EB;
+      font-family: 'JetBrains Mono', 'Fira Code', 'Courier New', monospace;
+      padding-bottom: 40px;
+    }
+    input[type=number] { -moz-appearance: textfield; }
+    input[type=number]::-webkit-inner-spin-button,
+    input[type=number]::-webkit-outer-spin-button { -webkit-appearance: none; margin: 0; }
+    ::-webkit-scrollbar { width: 4px; }
+    ::-webkit-scrollbar-track { background: #111; }
+    ::-webkit-scrollbar-thumb { background: #333; border-radius: 2px; }
 
-  :root {
-    --bg:       #0a0a0c;
-    --surface:  #111114;
-    --card:     #18181d;
-    --border:   #2a2a32;
-    --gold:     #f5c842;
-    --gold2:    #e8a800;
-    --green:    #00c97b;
-    --red:      #ff4d6a;
-    --muted:    #5a5a6e;
-    --text:     #e8e8f0;
-    --subtext:  #8888a0;
-    --font:     'Space Grotesk', sans-serif;
-    --mono:     'JetBrains Mono', monospace;
-  }
+    @keyframes pulse {
+      0%, 100% { opacity: 0.4; transform: scale(1.8); }
+      50% { opacity: 0.1; transform: scale(2.4); }
+    }
+    @keyframes shimmer {
+      0% { opacity: 0.3; } 50% { opacity: 1; } 100% { opacity: 0.3; }
+    }
+    @keyframes slideIn {
+      from { opacity: 0; transform: translateY(8px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+    @keyframes spin {
+      from { transform: rotate(0deg); } to { transform: rotate(360deg); }
+    }
 
-  * { margin:0; padding:0; box-sizing:border-box; }
+    /* HEADER */
+    #header {
+      background: linear-gradient(180deg, #0F0F0F 0%, #080808 100%);
+      border-bottom: 1px solid #1C1C1C;
+      padding: 20px 20px 16px;
+      position: sticky; top: 0; z-index: 10;
+      display: flex; justify-content: space-between; align-items: flex-start;
+    }
+    .header-left .brand { font-size: 11px; color: #B8860B; letter-spacing: 0.2em; font-weight: 700; }
+    .header-left .version { font-size: 9px; color: #444; letter-spacing: 0.1em; margin-left: 8px; }
+    .header-left .pair { font-size: 22px; font-weight: 700; color: #fff; letter-spacing: 0.02em; margin-top: 2px; }
+    .header-right { text-align: right; }
+    #clock { font-size: 10px; color: #4B5563; margin-bottom: 4px; }
+    #session-badge {
+      display: inline-flex; align-items: center; gap: 6px;
+      background: rgba(0,0,0,0.4);
+      padding: 4px 10px; border-radius: 20px;
+      border: 1px solid transparent;
+    }
+    .pulse-dot { position: relative; display: inline-block; width: 10px; height: 10px; }
+    .pulse-dot-ring {
+      position: absolute; inset: 0; border-radius: 50%;
+      animation: pulse 1.5s ease-in-out infinite;
+    }
+    .pulse-dot-core { position: absolute; inset: 0; border-radius: 50%; }
+    #session-name { font-size: 10px; font-weight: 700; letter-spacing: 0.1em; }
 
-  body {
-    background: var(--bg);
-    color: var(--text);
-    font-family: var(--font);
-    min-height: 100vh;
-    -webkit-font-smoothing: antialiased;
-  }
+    /* CONTENT */
+    #content { padding: 0 16px; max-width: 480px; margin: 0 auto; }
 
-  /* ── HEADER ── */
-  .header {
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-    padding: 16px 20px;
-    background: var(--surface);
-    border-bottom: 1px solid var(--border);
-    position: sticky;
-    top: 0;
-    z-index: 100;
-  }
-  .logo {
-    display: flex;
-    align-items: center;
-    gap: 10px;
-  }
-  .logo-icon {
-    width: 38px; height: 38px;
-    background: var(--gold);
-    border-radius: 10px;
-    display: flex; align-items: center; justify-content: center;
-    font-size: 18px;
-  }
-  .logo-text { line-height: 1.1; }
-  .logo-title {
-    font-size: 15px;
-    font-weight: 700;
-    letter-spacing: 0.08em;
-    color: var(--text);
-  }
-  .logo-sub {
-    font-size: 9px;
-    letter-spacing: 0.15em;
-    color: var(--muted);
-    text-transform: uppercase;
-  }
-  .live-badge {
-    display: flex; align-items: center; gap: 6px;
-    background: #0d2b1a;
-    border: 1px solid #00c97b44;
-    border-radius: 20px;
-    padding: 5px 12px;
-    font-size: 11px;
-    font-weight: 600;
-    color: var(--green);
-    letter-spacing: 0.1em;
-  }
-  .live-dot {
-    width: 7px; height: 7px;
-    border-radius: 50%;
-    background: var(--green);
-    animation: pulse 1.5s infinite;
-  }
-  @keyframes pulse {
-    0%,100% { opacity:1; }
-    50%      { opacity:0.3; }
-  }
+    /* CARDS */
+    .card {
+      background: #0F0F0F;
+      border: 1px solid #1C1C1C;
+      border-radius: 12px;
+      padding: 20px;
+      margin-top: 12px;
+      animation: slideIn 0.3s ease;
+    }
 
-  /* ── MAIN ── */
-  .main { padding: 16px; max-width: 480px; margin: 0 auto; }
+    /* PRICE CARD */
+    #price-card { margin-top: 16px; }
+    #price-value { font-size: 32px; font-weight: 700; color: #FFD700; letter-spacing: -0.02em; }
+    #price-change { font-size: 12px; margin-top: 2px; }
+    .price-meta { text-align: right; display: flex; flex-direction: column; gap: 4px; }
+    .price-meta span { font-size: 10px; color: #4B5563; }
+    .price-meta b { color: #9CA3AF; }
+    #atr-val { color: #B8860B !important; }
+    .price-top { display: flex; justify-content: space-between; align-items: flex-end; }
 
-  /* ── SESSION ── */
-  .session-bar {
-    display: flex; align-items: center; justify-content: space-between;
-    background: var(--card);
-    border: 1px solid var(--border);
-    border-radius: 12px;
-    padding: 10px 16px;
-    margin-bottom: 12px;
-  }
-  .session-info {
-    display: flex; align-items: center; gap: 8px;
-    font-size: 12px; font-weight: 600; color: var(--text);
-    letter-spacing: 0.06em;
-  }
-  .session-dot { width:8px; height:8px; border-radius:50%; }
-  .session-time {
-    font-family: var(--mono);
-    font-size: 12px;
-    color: var(--subtext);
-  }
+    /* MTF STRIP */
+    #mtf-strip {
+      display: flex; justify-content: space-around;
+      margin-top: 16px; padding-top: 16px;
+      border-top: 1px solid #1A1A1A;
+    }
+    .bias-chip { display: flex; flex-direction: column; align-items: center; gap: 6px; }
+    .bias-chip .tf-label { font-size: 10px; color: #6B7280; letter-spacing: 0.12em; }
+    .bias-chip .tf-val {
+      font-size: 11px; font-weight: 700; letter-spacing: 0.08em;
+      padding: 4px 10px; border-radius: 4px; border: 1px solid;
+    }
+    .bias-bull { color: #4ADE80; border-color: #4ADE80 !important; background: rgba(74,222,128,0.12) !important; }
+    .bias-bear { color: #F87171; border-color: #F87171 !important; background: rgba(248,113,113,0.12) !important; }
+    .bias-neutral { color: #9CA3AF; border-color: #4B5563 !important; background: rgba(107,114,128,0.12) !important; }
+    .mtf-divider { width: 1px; background: #1A1A1A; }
 
-  /* ── PRICE CARD ── */
-  .price-card {
-    background: var(--card);
-    border: 1px solid var(--border);
-    border-radius: 16px;
-    padding: 20px;
-    margin-bottom: 12px;
-    position: relative;
-    overflow: hidden;
-  }
-  .price-card::before {
-    content:'';
-    position: absolute;
-    top:0; left:0; right:0;
-    height: 2px;
-    background: linear-gradient(90deg, var(--gold2), var(--gold), var(--gold2));
-  }
-  .price-label {
-    font-size: 10px;
-    letter-spacing: 0.18em;
-    color: var(--muted);
-    text-transform: uppercase;
-    margin-bottom: 6px;
-  }
-  .price-main {
-    font-family: var(--mono);
-    font-size: 48px;
-    font-weight: 600;
-    color: var(--gold);
-    line-height: 1;
-    letter-spacing: -1px;
-    margin-bottom: 4px;
-  }
-  .price-change {
-    font-family: var(--mono);
-    font-size: 13px;
-    margin-bottom: 18px;
-  }
-  .price-change.up   { color: var(--green); }
-  .price-change.down { color: var(--red); }
-  .price-change.flat { color: var(--muted); }
+    /* SIGNAL CARD */
+    #signal-card { position: relative; overflow: hidden; }
+    #signal-glow {
+      position: absolute; top: 0; left: 0; right: 0; bottom: 0;
+      pointer-events: none; border-radius: 12px;
+    }
+    .signal-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 16px; }
+    .signal-label { font-size: 10px; color: #4B5563; letter-spacing: 0.15em; }
+    #last-update { font-size: 9px; color: #333; }
+    #scanning-txt { font-size: 10px; color: #B8860B; animation: shimmer 1s infinite; }
 
-  .price-stats {
-    display: grid;
-    grid-template-columns: 1fr 1fr 1fr;
-    gap: 0;
-    border-top: 1px solid var(--border);
-    padding-top: 14px;
-  }
-  .stat-item { text-align: center; }
-  .stat-item:not(:last-child) { border-right: 1px solid var(--border); }
-  .stat-val {
-    font-family: var(--mono);
-    font-size: 14px;
-    font-weight: 600;
-    color: var(--text);
-  }
-  .stat-lbl {
-    font-size: 9px;
-    letter-spacing: 0.15em;
-    color: var(--muted);
-    text-transform: uppercase;
-    margin-top: 2px;
-  }
+    /* Signal states */
+    #signal-body { position: relative; }
+    .signal-wait { text-align: center; padding: 16px 0; }
+    .signal-wait .wait-txt { font-size: 28px; font-weight: 700; color: #F59E0B; letter-spacing: 0.05em; }
+    .signal-wait .wait-sub { font-size: 11px; color: #6B7280; margin-top: 4px; }
+    .signal-error { text-align: center; padding: 16px 0; }
+    .signal-error .err-txt { font-size: 11px; color: #EF4444; margin-bottom: 8px; }
+    .loading-txt { text-align: center; padding: 20px 0; color: #333; font-size: 12px; }
 
-  /* ── SCAN BUTTON ── */
-  .scan-btn {
-    width: 100%;
-    padding: 16px;
-    background: var(--gold);
-    color: #0a0a0c;
-    border: none;
-    border-radius: 14px;
-    font-family: var(--font);
-    font-size: 15px;
-    font-weight: 700;
-    letter-spacing: 0.05em;
-    cursor: pointer;
-    display: flex; align-items: center; justify-content: center; gap: 8px;
-    margin-bottom: 8px;
-    transition: background 0.15s, transform 0.1s;
-  }
-  .scan-btn:active { background: var(--gold2); transform: scale(0.98); }
-  .scan-btn:disabled { opacity: 0.5; cursor: not-allowed; }
-  .refresh-info {
-    text-align: center;
-    font-size: 11px;
-    color: var(--muted);
-    margin-bottom: 16px;
-  }
+    /* Active signal */
+    #sig-direction { font-size: 34px; font-weight: 800; letter-spacing: 0.04em; }
+    #sig-confidence {
+      font-size: 12px; opacity: 0.7;
+      padding: 2px 10px; border-radius: 20px;
+    }
+    .sig-top { display: flex; align-items: baseline; gap: 12px; margin-bottom: 16px; }
 
-  /* ── SECTION HEADER ── */
-  .sec-hdr {
-    display: flex; align-items: center; gap: 8px;
-    font-size: 11px;
-    letter-spacing: 0.14em;
-    text-transform: uppercase;
-    color: var(--muted);
-    font-weight: 600;
-    margin-bottom: 10px;
-    margin-top: 4px;
-  }
+    /* Entry table */
+    .entry-table {
+      background: #0A0A0A; border: 1px solid #1A1A1A;
+      border-radius: 8px; overflow: hidden; margin-bottom: 14px;
+    }
+    .entry-row {
+      display: flex; justify-content: space-between;
+      padding: 8px 14px; border-bottom: 1px solid #141414;
+    }
+    .entry-row:last-child { border-bottom: none; background: #0D0D0D; }
+    .entry-row .e-label { font-size: 10px; color: #4B5563; letter-spacing: 0.1em; }
+    .entry-row .e-val { font-size: 11px; font-weight: 600; }
 
-  /* ── MTF BIAS ── */
-  .mtf-grid {
-    display: grid;
-    grid-template-columns: repeat(3, 1fr);
-    gap: 8px;
-    margin-bottom: 12px;
-  }
-  .tf-card {
-    background: var(--card);
-    border: 1px solid var(--border);
-    border-radius: 12px;
-    padding: 14px 10px;
-    text-align: center;
-  }
-  .tf-label {
-    font-size: 11px;
-    font-weight: 700;
-    letter-spacing: 0.1em;
-    color: var(--subtext);
-    margin-bottom: 8px;
-  }
-  .tf-signal {
-    font-size: 22px;
-    font-weight: 700;
-    margin-bottom: 4px;
-  }
-  .tf-signal.bull  { color: var(--green); }
-  .tf-signal.bear  { color: var(--red); }
-  .tf-signal.neut  { color: var(--muted); }
-  .tf-ema {
-    font-family: var(--mono);
-    font-size: 10px;
-    color: var(--muted);
-  }
+    /* Confluence */
+    .conf-title { font-size: 9px; color: #333; letter-spacing: 0.15em; margin-bottom: 8px; }
+    .factor-row {
+      display: flex; justify-content: space-between; align-items: center;
+      padding: 5px 0; border-bottom: 1px solid #1A1A1A;
+    }
+    .factor-row .f-label { font-size: 11px; color: #6B7280; }
+    .factor-row .f-val { font-size: 11px; font-weight: 600; }
+    .f-buy { color: #4ADE80; }
+    .f-sell { color: #F87171; }
+    .f-neutral { color: #6B7280; }
 
-  /* ── CONFLUENCE ── */
-  .confluence-card {
-    background: var(--card);
-    border: 1px solid var(--border);
-    border-radius: 12px;
-    padding: 14px 16px;
-    margin-bottom: 12px;
-    display: flex;
-    align-items: center;
-    gap: 12px;
-  }
-  .conf-label { font-size: 12px; color: var(--subtext); white-space: nowrap; }
-  .conf-bar-wrap { flex:1; height:6px; background:#222230; border-radius:3px; overflow:hidden; }
-  .conf-bar { height:100%; border-radius:3px; transition: width 0.5s ease; }
-  .conf-score {
-    font-family: var(--mono);
-    font-size: 16px;
-    font-weight: 700;
-    white-space: nowrap;
-  }
+    /* Scan button */
+    #scan-btn {
+      width: 100%; margin-top: 14px;
+      background: linear-gradient(135deg, #B8860B 0%, #8B6914 100%);
+      border: none; border-radius: 8px; color: #000;
+      font-size: 11px; font-weight: 700; letter-spacing: 0.15em;
+      padding: 11px; cursor: pointer;
+      font-family: inherit; transition: opacity 0.2s;
+    }
+    #scan-btn:disabled { background: #111; color: #444; cursor: not-allowed; }
 
-  /* ── SIGNAL ENTRY ── */
-  .signal-card {
-    background: var(--card);
-    border: 1px solid var(--border);
-    border-radius: 16px;
-    padding: 20px;
-    text-align: center;
-    margin-bottom: 12px;
-    min-height: 120px;
-    display: flex; flex-direction: column;
-    align-items: center; justify-content: center;
-  }
-  .signal-card.buy  { border-color: #00c97b44; background: #0a1f14; }
-  .signal-card.sell { border-color: #ff4d6a44; background: #1f0a0e; }
-  .signal-card.wait { border-color: var(--border); }
-  .signal-emoji { font-size: 32px; margin-bottom: 8px; }
-  .signal-title {
-    font-size: 20px;
-    font-weight: 700;
-    letter-spacing: 0.04em;
-    margin-bottom: 4px;
-  }
-  .signal-title.buy  { color: var(--green); }
-  .signal-title.sell { color: var(--red); }
-  .signal-title.wait { color: var(--muted); }
-  .signal-sub {
-    font-size: 11px;
-    color: var(--muted);
-  }
+    #retry-btn {
+      font-size: 10px; color: #B8860B; background: transparent;
+      border: 1px solid rgba(184,134,11,0.3); border-radius: 6px;
+      padding: 6px 16px; cursor: pointer; font-family: inherit;
+    }
 
-  /* ── TP/SL ── */
-  .tpsl-grid {
-    display: grid;
-    grid-template-columns: 1fr 1fr;
-    gap: 8px;
-    margin-bottom: 16px;
-  }
-  .tpsl-card {
-    background: var(--card);
-    border: 1px solid var(--border);
-    border-radius: 12px;
-    padding: 14px;
-    text-align: center;
-    display: none;
-  }
-  .tpsl-card.visible { display: block; }
-  .tpsl-lbl { font-size: 10px; letter-spacing:0.15em; text-transform:uppercase; color:var(--muted); margin-bottom:4px; }
-  .tpsl-val { font-family:var(--mono); font-size:17px; font-weight:600; }
-  .tpsl-val.tp { color: var(--green); }
-  .tpsl-val.sl { color: var(--red); }
+    /* LOT CALC */
+    .lot-label { font-size: 10px; color: #4B5563; letter-spacing: 0.15em; margin-bottom: 16px; }
+    .lot-inputs { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-bottom: 14px; }
+    .lot-input-group label { font-size: 9px; color: #4B5563; letter-spacing: 0.1em; display: block; margin-bottom: 6px; }
+    .lot-input-group input {
+      width: 100%; background: #0A0A0A; border: 1px solid #1C1C1C;
+      border-radius: 6px; color: #E5E7EB; font-size: 14px; font-weight: 600;
+      padding: 10px 12px; font-family: inherit; outline: none;
+    }
+    .risk-amt { font-size: 11px; color: #6B7280; margin-bottom: 14px; display: flex; justify-content: space-between; }
+    .risk-amt span:last-child { color: #9CA3AF; }
 
-  /* ── CALCULATOR ── */
-  .calc-card {
-    background: var(--card);
-    border: 1px solid var(--border);
-    border-radius: 16px;
-    padding: 20px;
-    margin-bottom: 20px;
-  }
-  .calc-row {
-    display: grid;
-    grid-template-columns: 1fr 1fr;
-    gap: 10px;
-    margin-bottom: 14px;
-  }
-  .input-group { display: flex; flex-direction: column; gap: 5px; }
-  .input-lbl { font-size: 10px; letter-spacing:0.13em; text-transform:uppercase; color:var(--muted); }
-  .input-field {
-    background: var(--surface);
-    border: 1px solid var(--border);
-    border-radius: 8px;
-    padding: 10px 12px;
-    color: var(--text);
-    font-family: var(--mono);
-    font-size: 14px;
-    width: 100%;
-    outline: none;
-    transition: border-color 0.15s;
-  }
-  .input-field:focus { border-color: var(--gold); }
+    .lot-result {
+      background: #0A0A0A; border: 1px solid #1A1A1A;
+      border-radius: 8px; overflow: hidden;
+    }
+    .lot-result-grid { display: grid; grid-template-columns: 1fr 1fr; }
+    .lot-result-cell { padding: 14px; }
+    .lot-result-cell:first-child { border-right: 1px solid #1A1A1A; }
+    .lot-result-cell .r-label { font-size: 9px; color: #4B5563; letter-spacing: 0.1em; margin-bottom: 4px; }
+    .lot-result-cell .r-val { font-size: 22px; font-weight: 700; }
+    .lot-result-cell .r-sub { font-size: 9px; color: #333; margin-top: 2px; }
+    #lot-val { color: #FFD700; }
+    #profit-val { color: #4ADE80; }
+    #lot-info { padding: 8px 14px; border-top: 1px solid #141414; font-size: 10px; color: #4B5563; text-align: center; }
 
-  .lot-result {
-    background: var(--surface);
-    border: 1px solid var(--gold);
-    border-radius: 12px;
-    padding: 16px;
-    text-align: center;
-  }
-  .lot-lbl { font-size: 11px; color: var(--muted); letter-spacing:0.1em; text-transform:uppercase; margin-bottom:4px; }
-  .lot-val {
-    font-family: var(--mono);
-    font-size: 32px;
-    font-weight: 700;
-    color: var(--gold);
-  }
-  .lot-sub { font-size: 11px; color: var(--muted); margin-top:2px; }
-
-  /* ── FOOTER ── */
-  footer {
-    text-align: center;
-    padding: 16px;
-    font-size: 10px;
-    color: var(--muted);
-    border-top: 1px solid var(--border);
-  }
-
-  /* ── CONNECTION STATUS ── */
-  .ws-status {
-    display: flex; align-items: center; gap: 6px;
-    font-size: 10px; color: var(--muted);
-    justify-content: center;
-    margin-bottom: 10px;
-  }
-  .ws-dot { width:6px; height:6px; border-radius:50%; background:var(--muted); }
-  .ws-dot.connected { background:var(--green); }
-  .ws-dot.error { background:var(--red); }
-</style>
+    /* FOOTER */
+    #footer {
+      margin-top: 24px; text-align: center;
+      font-size: 9px; color: #222; letter-spacing: 0.1em; line-height: 1.8;
+    }
+  </style>
 </head>
 <body>
 
 <!-- HEADER -->
-<div class="header">
-  <div class="logo">
-    <div class="logo-icon">⚡</div>
-    <div class="logo-text">
-      <div class="logo-title">FERY GOLD</div>
-      <div class="logo-sub">MTF Signal Scanner</div>
+<div id="header">
+  <div class="header-left">
+    <div><span class="brand">FERY ALGO</span><span class="version">PRO v2</span></div>
+    <div class="pair">XAU / USD</div>
+  </div>
+  <div class="header-right">
+    <div id="clock">──:──:── WIB</div>
+    <div id="session-badge">
+      <span class="pulse-dot">
+        <span class="pulse-dot-ring" id="dot-ring"></span>
+        <span class="pulse-dot-core" id="dot-core"></span>
+      </span>
+      <span id="session-name">──────</span>
     </div>
   </div>
-  <div class="live-badge"><div class="live-dot"></div>LIVE</div>
 </div>
 
-<div class="main">
-
-  <!-- SESSION BAR -->
-  <div class="session-bar">
-    <div class="session-info">
-      <div class="session-dot" id="sessionDot"></div>
-      <span id="sessionName">–</span>
-    </div>
-    <div class="session-time" id="sessionTime">–</div>
-  </div>
-
-  <!-- WS STATUS -->
-  <div class="ws-status">
-    <div class="ws-dot" id="wsDot"></div>
-    <span id="wsLabel">Menghubungkan ke Binance...</span>
-  </div>
+<div id="content">
 
   <!-- PRICE CARD -->
-  <div class="price-card">
-    <div class="price-label">XAU / USD · PAXG Real-time</div>
-    <div class="price-main" id="priceMain">––––.––</div>
-    <div class="price-change flat" id="priceChange">– –.–– (–.––%)</div>
-    <div class="price-stats">
-      <div class="stat-item">
-        <div class="stat-val" id="priceHigh">–</div>
-        <div class="stat-lbl">High</div>
+  <div class="card" id="price-card">
+    <div class="price-top">
+      <div>
+        <div id="price-value">────.──</div>
+        <div id="price-change"></div>
       </div>
-      <div class="stat-item">
-        <div class="stat-val" id="priceLow">–</div>
-        <div class="stat-lbl">Low</div>
+      <div class="price-meta">
+        <span>H <b id="price-high">─</b></span>
+        <span>L <b id="price-low">─</b></span>
+        <span>ATR <b id="atr-val">─</b></span>
       </div>
-      <div class="stat-item">
-        <div class="stat-val" id="priceVol">–</div>
-        <div class="stat-lbl">Volume</div>
+    </div>
+    <div id="mtf-strip">
+      <div class="bias-chip">
+        <span class="tf-label">H1</span>
+        <span class="tf-val bias-neutral" id="bias-h1">─</span>
+      </div>
+      <div class="mtf-divider"></div>
+      <div class="bias-chip">
+        <span class="tf-label">M15</span>
+        <span class="tf-val bias-neutral" id="bias-m15">─</span>
+      </div>
+      <div class="mtf-divider"></div>
+      <div class="bias-chip">
+        <span class="tf-label">M5</span>
+        <span class="tf-val bias-neutral" id="bias-m5">─</span>
       </div>
     </div>
   </div>
 
-  <!-- SCAN BUTTON -->
-  <button class="scan-btn" id="scanBtn" onclick="doScan()">
-    ⚡ Scan Sinyal Sekarang
-  </button>
-  <div class="refresh-info" id="refreshInfo">Auto refresh tiap 30 detik · Last update: –</div>
-
-  <!-- MTF BIAS -->
-  <div class="sec-hdr">📊 Multi-Timeframe Bias</div>
-  <div class="mtf-grid">
-    <div class="tf-card">
-      <div class="tf-label">H1</div>
-      <div class="tf-signal neut" id="tfH1">–</div>
-      <div class="tf-ema" id="emaH1">EMA –</div>
+  <!-- SIGNAL CARD -->
+  <div class="card" id="signal-card">
+    <div id="signal-glow"></div>
+    <div class="signal-header">
+      <span class="signal-label">SIGNAL</span>
+      <span id="scanning-txt" style="display:none">SCANNING...</span>
+      <span id="last-update"></span>
     </div>
-    <div class="tf-card">
-      <div class="tf-label">M15</div>
-      <div class="tf-signal neut" id="tfM15">–</div>
-      <div class="tf-ema" id="emaM15">EMA –</div>
+    <div id="signal-body">
+      <div class="loading-txt">Mengambil data market...</div>
     </div>
-    <div class="tf-card">
-      <div class="tf-label">M5</div>
-      <div class="tf-signal neut" id="tfM5">–</div>
-      <div class="tf-ema" id="emaM5">EMA –</div>
-    </div>
+    <button id="scan-btn" onclick="scan()">⚡ SCAN SEKARANG</button>
   </div>
 
-  <!-- CONFLUENCE -->
-  <div class="sec-hdr">⚡ Confluence Strength</div>
-  <div class="confluence-card">
-    <div class="conf-label">Confluence</div>
-    <div class="conf-bar-wrap">
-      <div class="conf-bar" id="confBar" style="width:0%;background:var(--muted)"></div>
-    </div>
-    <div class="conf-score" id="confScore" style="color:var(--muted)">–/3</div>
-  </div>
-
-  <!-- SIGNAL ENTRY -->
-  <div class="sec-hdr">🎯 Signal Entry</div>
-  <div class="signal-card wait" id="signalCard">
-    <div class="signal-emoji" id="signalEmoji">🔍</div>
-    <div class="signal-title wait" id="signalTitle">Belum ada sinyal</div>
-    <div class="signal-sub" id="signalSub">Klik Scan untuk analisa market</div>
-  </div>
-
-  <!-- TP/SL -->
-  <div class="tpsl-grid" id="tpslGrid">
-    <div class="tpsl-card" id="tpCard">
-      <div class="tpsl-lbl">Take Profit</div>
-      <div class="tpsl-val tp" id="tpVal">–</div>
-    </div>
-    <div class="tpsl-card" id="slCard">
-      <div class="tpsl-lbl">Stop Loss</div>
-      <div class="tpsl-val sl" id="slVal">–</div>
-    </div>
-  </div>
-
-  <!-- CALCULATOR -->
-  <div class="sec-hdr">🧮 Kalkulator Lot</div>
-  <div class="calc-card">
-    <div class="calc-row">
-      <div class="input-group">
-        <div class="input-lbl">Modal Akun ($)</div>
-        <input class="input-field" type="number" id="inModal" value="1000" oninput="calcLot()">
+  <!-- LOT CALCULATOR -->
+  <div class="card">
+    <div class="lot-label">LOT CALCULATOR</div>
+    <div class="lot-inputs">
+      <div class="lot-input-group">
+        <label>MODAL ($)</label>
+        <input type="number" id="inp-modal" value="10000" oninput="updateLot()" />
       </div>
-      <div class="input-group">
-        <div class="input-lbl">Risiko Max (%)</div>
-        <input class="input-field" type="number" id="inRisk" value="1" oninput="calcLot()">
+      <div class="lot-input-group">
+        <label>RISK (%)</label>
+        <input type="number" id="inp-risk" value="1" step="0.1" oninput="updateLot()" />
       </div>
+    </div>
+    <div class="risk-amt">
+      <span>Risk amount</span>
+      <span id="risk-amt-val">$100</span>
     </div>
     <div class="lot-result">
-      <div class="lot-lbl">Rekomendasi Lot XAU/USD</div>
-      <div class="lot-val" id="lotVal">0.02</div>
-      <div class="lot-sub" id="lotSub">Risiko $10.00 · 1.0% dari modal</div>
+      <div class="lot-result-grid">
+        <div class="lot-result-cell">
+          <div class="r-label">LOT SIZE</div>
+          <div class="r-val" id="lot-val">─</div>
+          <div class="r-sub">XAU/USD</div>
+        </div>
+        <div class="lot-result-cell">
+          <div class="r-label">EST. PROFIT</div>
+          <div class="r-val" id="profit-val">─</div>
+          <div class="r-sub">@ TP1</div>
+        </div>
+      </div>
+      <div id="lot-info">Scan dulu untuk hitung lot</div>
     </div>
+  </div>
+
+  <!-- FOOTER -->
+  <div id="footer">
+    <div>FERY ALGO PRO v2 · PAXG/USDT via Binance</div>
+    <div>Bukan saran investasi · Gunakan manajemen risiko</div>
   </div>
 
 </div>
 
-<footer>© 2026 Fery Gold Scanner · Data: Binance PAXG/USDT WebSocket · Bukan saran investasi</footer>
-
 <script>
-// ── STATE ──
-let currentPrice = 0;
-let openPrice    = 0;
-let highPrice    = 0;
-let lowPrice     = 0;
-let volume       = 0;
-let klines       = { H1: [], M15: [], M5: [] };
-let scanResult   = null;
-let wsPrice      = null;
-let wsH1         = null;
-let wsM15        = null;
-let wsM5         = null;
-let lastScanTime = null;
-let autoTimer    = null;
+// ── CONSTANTS
+const SYMBOL = 'PAXGUSDT';
+const RISK_PER_PIP = 10;
+let currentSignal = null;
+let scanTimer = null;
 
-// ── WEBSOCKET SETUP ──
-function connectWS() {
-  setWsStatus('connecting');
-
-  // Price ticker
-  wsPrice = new WebSocket('wss://stream.binance.com:9443/ws/paxgusdt@ticker');
-  wsPrice.onopen  = () => setWsStatus('connected');
-  wsPrice.onerror = () => setWsStatus('error');
-  wsPrice.onclose = () => { setWsStatus('error'); setTimeout(connectWS, 5000); };
-  wsPrice.onmessage = (e) => {
-    const d = JSON.parse(e.data);
-    currentPrice = parseFloat(d.c);
-    openPrice    = parseFloat(d.o);
-    highPrice    = parseFloat(d.h);
-    lowPrice     = parseFloat(d.l);
-    volume       = parseFloat(d.v);
-    updatePriceUI();
-  };
-
-  // Kline streams
-  connectKline('60m',  'H1');
-  connectKline('15m', 'M15');
-  connectKline('5m',  'M5');
+// ── UTILS
+function fmtPrice(p) {
+  if (!p) return '─────';
+  return p.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+}
+function fmtPct(p) {
+  if (p == null) return '─';
+  return (p >= 0 ? '+' : '') + p.toFixed(2) + '%';
+}
+function pipsDiff(a, b) {
+  return Math.abs(a - b).toFixed(2);
 }
 
-function connectKline(interval, key) {
-  const ws = new WebSocket(`wss://stream.binance.com:9443/ws/paxgusdt@kline_${interval}`);
-  ws.onmessage = (e) => {
-    const d = JSON.parse(e.data).k;
-    if (!d) return;
-    const close = parseFloat(d.c);
-    if (!klines[key].length || klines[key][klines[key].length-1] !== close) {
-      klines[key].push(close);
-      if (klines[key].length > 50) klines[key].shift();
-    }
-  };
-  if (key === 'H1')  wsH1  = ws;
-  if (key === 'M15') wsM15 = ws;
-  if (key === 'M5')  wsM5  = ws;
+function calcATR(candles, period = 14) {
+  if (!candles || candles.length < period + 1) return null;
+  const trs = candles.slice(1).map((c, i) => {
+    const prev = candles[i];
+    return Math.max(c.high - c.low, Math.abs(c.high - prev.close), Math.abs(c.low - prev.close));
+  });
+  const slice = trs.slice(-period);
+  return slice.reduce((a, b) => a + b, 0) / period;
 }
 
-// Fetch historical klines to seed EMA
-async function fetchHistorical() {
-  const intervals = [['1h','H1'], ['15m','M15'], ['5m','M5']];
-  for (const [iv, key] of intervals) {
-    try {
-      const res = await fetch(`https://api.binance.com/api/v3/klines?symbol=PAXGUSDT&interval=${iv}&limit=50`);
-      const data = await res.json();
-      klines[key] = data.map(c => parseFloat(c[4]));
-    } catch(e) { /* ignore */ }
-  }
-}
-
-// ── EMA CALC ──
-function ema(closes, period) {
+function calcEMA(closes, period) {
   if (closes.length < period) return null;
   const k = 2 / (period + 1);
-  let val = closes.slice(0, period).reduce((a,b) => a+b, 0) / period;
-  for (let i = period; i < closes.length; i++) val = closes[i]*k + val*(1-k);
-  return val;
+  let ema = closes.slice(0, period).reduce((a, b) => a + b, 0) / period;
+  for (let i = period; i < closes.length; i++) ema = closes[i] * k + ema * (1 - k);
+  return ema;
 }
 
-// ── UI: PRICE ──
-function updatePriceUI() {
-  if (!currentPrice) return;
-  const p = currentPrice;
-  document.getElementById('priceMain').textContent = p.toFixed(2);
-
-  const diff = p - openPrice;
-  const pct  = openPrice ? (diff / openPrice * 100) : 0;
-  const sign  = diff >= 0 ? '+' : '';
-  const el    = document.getElementById('priceChange');
-  el.textContent = `${sign}${diff.toFixed(2)} (${sign}${pct.toFixed(2)}%)`;
-  el.className = 'price-change ' + (diff > 0 ? 'up' : diff < 0 ? 'down' : 'flat');
-
-  document.getElementById('priceHigh').textContent = highPrice.toFixed(2);
-  document.getElementById('priceLow').textContent  = lowPrice.toFixed(2);
-
-  const vol = volume >= 1000 ? (volume/1000).toFixed(1)+'K' : volume.toFixed(0);
-  document.getElementById('priceVol').textContent = vol;
+function calcRSI(closes, period = 14) {
+  if (closes.length < period + 1) return null;
+  const changes = closes.slice(1).map((c, i) => c - closes[i]);
+  const recent = changes.slice(-period);
+  const gains = recent.filter(c => c > 0).reduce((a, b) => a + b, 0) / period;
+  const losses = recent.filter(c => c < 0).map(Math.abs).reduce((a, b) => a + b, 0) / period;
+  if (losses === 0) return 100;
+  return 100 - 100 / (1 + gains / losses);
 }
 
-// ── WS STATUS ──
-function setWsStatus(state) {
-  const dot = document.getElementById('wsDot');
-  const lbl = document.getElementById('wsLabel');
-  if (state === 'connected') {
-    dot.className = 'ws-dot connected';
-    lbl.textContent = 'WebSocket Binance terhubung';
-  } else if (state === 'error') {
-    dot.className = 'ws-dot error';
-    lbl.textContent = 'Koneksi terputus, reconnecting...';
-  } else {
-    dot.className = 'ws-dot';
-    lbl.textContent = 'Menghubungkan ke Binance...';
-  }
+function calcMACD(closes) {
+  const e12 = calcEMA(closes, 12);
+  const e26 = calcEMA(closes, 26);
+  if (!e12 || !e26) return null;
+  return e12 - e26;
 }
 
-// ── SESSION ──
-function updateSession() {
-  const now  = new Date();
-  const utcH = now.getUTCHours();
-  const utcM = now.getUTCMinutes();
-  const utcS = now.getUTCSeconds();
-  const timeStr = `${String(utcH).padStart(2,'0')}:${String(utcM).padStart(2,'0')}:${String(utcS).padStart(2,'0')} UTC`;
-
-  let session = 'CLOSED';
-  let color   = '#888';
-  let flag    = '🌙';
-
-  if (utcH >= 22 || utcH < 7)        { session='SYDNEY';    color='#7c6fff'; flag='🇦🇺'; }
-  else if (utcH >= 0 && utcH < 9)    { session='TOKYO';     color='#ff9f43'; flag='🇯🇵'; }
-  else if (utcH >= 7 && utcH < 16)   { session='LONDON';    color='#00c97b'; flag='🇬🇧'; }
-  else if (utcH >= 13 && utcH < 22)  { session='NEW YORK';  color='#5dade2'; flag='🇺🇸'; }
-
-  // overlap
-  if ((utcH >= 13 && utcH < 16))     { session='LONDON/NY'; color='#f5c842'; flag='🔥'; }
-
-  const dot = document.getElementById('sessionDot');
-  dot.style.background = color;
-  document.getElementById('sessionName').textContent = flag + ' ' + session;
-  document.getElementById('sessionTime').textContent = timeStr;
+function parseBinanceKlines(raw) {
+  return raw.map(k => ({
+    open: parseFloat(k[1]), high: parseFloat(k[2]),
+    low: parseFloat(k[3]), close: parseFloat(k[4]),
+    volume: parseFloat(k[5]), time: k[0]
+  }));
 }
 
-// ── SCAN ──
-function doScan() {
-  if (!currentPrice) return;
-
-  const e5H1  = ema(klines.H1,  5);
-  const e13H1 = ema(klines.H1, 13);
-  const e5M15  = ema(klines.M15, 5);
-  const e13M15 = ema(klines.M15, 13);
-  const e5M5   = ema(klines.M5, 5);
-  const e13M5  = ema(klines.M5, 13);
-
-  const biasH1  = e5H1  && e13H1  ? (e5H1 > e13H1 ? 'bull' : 'bear') : null;
-  const biasM15 = e5M15 && e13M15 ? (e5M15 > e13M15 ? 'bull' : 'bear') : null;
-  const biasM5  = e5M5  && e13M5  ? (e5M5 > e13M5 ? 'bull' : 'bear') : null;
-
-  // Update MTF UI
-  setTF('H1',  biasH1,  e5H1,  e13H1);
-  setTF('M15', biasM15, e5M15, e13M15);
-  setTF('M5',  biasM5,  e5M5,  e13M5);
-
-  // Confluence
-  const bulls = [biasH1, biasM15, biasM5].filter(x => x === 'bull').length;
-  const bears = [biasH1, biasM15, biasM5].filter(x => x === 'bear').length;
-  const conf  = Math.max(bulls, bears);
-
-  // Confluence bar
-  const pct = (conf / 3 * 100).toFixed(0);
-  const barEl = document.getElementById('confBar');
-  const scoreEl = document.getElementById('confScore');
-  barEl.style.width = pct + '%';
-  if (conf === 3)      { barEl.style.background = bulls===3 ? 'var(--green)' : 'var(--red)'; scoreEl.style.color = bulls===3 ? 'var(--green)' : 'var(--red)'; }
-  else if (conf === 2) { barEl.style.background = 'var(--gold)'; scoreEl.style.color = 'var(--gold)'; }
-  else                 { barEl.style.background = 'var(--muted)'; scoreEl.style.color = 'var(--muted)'; }
-  scoreEl.textContent = conf + '/3';
-
-  // Signal
-  const atr = currentPrice * 0.003; // ~0.3% ATR estimate
-  if (conf >= 2 && bulls >= conf) {
-    showSignal('buy', conf, atr);
-  } else if (conf >= 2 && bears >= conf) {
-    showSignal('sell', conf, atr);
-  } else {
-    showSignal('wait', conf, 0);
-  }
-
-  // Timestamp
+// ── SESSION
+function getSessionWIB() {
   const now = new Date();
-  const ts  = `${String(now.getHours()).padStart(2,'0')}:${String(now.getMinutes()).padStart(2,'0')}:${String(now.getSeconds()).padStart(2,'0')}`;
-  document.getElementById('refreshInfo').textContent = `Auto refresh tiap 30 detik · Last update: ${ts}`;
-
-  // Schedule next scan
-  clearTimeout(autoTimer);
-  autoTimer = setTimeout(doScan, 30000);
+  const utcMin = now.getUTCHours() * 60 + now.getUTCMinutes();
+  const wibMin = (utcMin + 7 * 60) % 1440;
+  const londonStart = 14 * 60, londonEnd = 23 * 60;
+  const nyStart = 19 * 60 + 30;
+  const inLondon = wibMin >= londonStart && wibMin < londonEnd;
+  const inNY = wibMin >= nyStart || wibMin < (28 * 60 - 1440);
+  const overlap = wibMin >= nyStart && wibMin < londonEnd;
+  if (overlap) return { name: 'LONDON × NY', color: '#FFD700', active: true };
+  if (inLondon) return { name: 'LONDON', color: '#4ADE80', active: true };
+  if (inNY) return { name: 'NEW YORK', color: '#60A5FA', active: true };
+  return { name: 'DEAD ZONE', color: '#6B7280', active: false };
 }
 
-function setTF(key, bias, e5, e13) {
-  const tfEl  = document.getElementById('tf' + key);
-  const emaEl = document.getElementById('ema' + key);
-  if (!bias) {
-    tfEl.textContent  = '–';
-    tfEl.className    = 'tf-signal neut';
-    emaEl.textContent = 'EMA –';
+// ── CLOCK
+function updateClock() {
+  const now = new Date();
+  const wib = new Date(now.getTime() + 7 * 60 * 60 * 1000);
+  const hh = String(wib.getUTCHours()).padStart(2, '0');
+  const mm = String(wib.getUTCMinutes()).padStart(2, '0');
+  const ss = String(wib.getUTCSeconds()).padStart(2, '0');
+  document.getElementById('clock').textContent = `${hh}:${mm}:${ss} WIB`;
+
+  const sess = getSessionWIB();
+  const badge = document.getElementById('session-badge');
+  badge.style.borderColor = sess.color + '33';
+  document.getElementById('dot-ring').style.background = sess.color;
+  document.getElementById('dot-core').style.background = sess.color;
+  document.getElementById('session-name').textContent = sess.name;
+  document.getElementById('session-name').style.color = sess.color;
+}
+setInterval(updateClock, 1000);
+updateClock();
+
+// ── BIAS CHIP
+function setBias(id, bias) {
+  const el = document.getElementById(id);
+  el.textContent = bias;
+  el.className = 'tf-val ' + (bias === 'BULL' ? 'bias-bull' : bias === 'BEAR' ? 'bias-bear' : 'bias-neutral');
+}
+
+function analyzeTimeframe(candles) {
+  if (!candles || candles.length < 30) return { bias: 'NEUTRAL', score: 0 };
+  const closes = candles.map(c => c.close);
+  const ema9 = calcEMA(closes, 9);
+  const ema21 = calcEMA(closes, 21);
+  const rsi = calcRSI(closes);
+  const macd = calcMACD(closes);
+  const last = closes[closes.length - 1];
+  let score = 0;
+  if (ema9 && ema21) {
+    if (ema9 > ema21 && last > ema9) score++;
+    else if (ema9 < ema21 && last < ema9) score--;
+  }
+  if (rsi) { if (rsi > 55) score++; else if (rsi < 45) score--; }
+  if (macd) { if (macd > 0) score++; else score--; }
+  return { bias: score >= 2 ? 'BULL' : score <= -2 ? 'BEAR' : 'NEUTRAL', score, rsi };
+}
+
+// ── SIGNAL ENGINE
+function generateSignal(m5, m15, h1, ticker, session) {
+  if (!m5 || !m15 || !h1 || !ticker) return null;
+  const atr = calcATR(m5, 14);
+  if (!atr) return null;
+
+  const a5 = analyzeTimeframe(m5);
+  const a15 = analyzeTimeframe(m15);
+  const a1h = analyzeTimeframe(h1);
+  const closes5 = m5.map(c => c.close);
+  const rsi5 = calcRSI(closes5);
+  const price = ticker.price;
+
+  let buyScore = 0, sellScore = 0;
+  const factors = [];
+
+  if (a1h.bias === 'BULL') { buyScore += 2; factors.push({ label: 'H1 Trend', val: '↑ BULL', side: 'buy' }); }
+  else if (a1h.bias === 'BEAR') { sellScore += 2; factors.push({ label: 'H1 Trend', val: '↓ BEAR', side: 'sell' }); }
+  else factors.push({ label: 'H1 Trend', val: '─ NEUTRAL', side: 'neutral' });
+
+  if (a15.bias === 'BULL') { buyScore += 1.5; factors.push({ label: 'M15 Mom', val: '↑ BULL', side: 'buy' }); }
+  else if (a15.bias === 'BEAR') { sellScore += 1.5; factors.push({ label: 'M15 Mom', val: '↓ BEAR', side: 'sell' }); }
+  else factors.push({ label: 'M15 Mom', val: '─ NEUTRAL', side: 'neutral' });
+
+  if (a5.bias === 'BULL') { buyScore += 1; factors.push({ label: 'M5 Entry', val: '↑ BULL', side: 'buy' }); }
+  else if (a5.bias === 'BEAR') { sellScore += 1; factors.push({ label: 'M5 Entry', val: '↓ BEAR', side: 'sell' }); }
+  else factors.push({ label: 'M5 Entry', val: '─ NEUTRAL', side: 'neutral' });
+
+  if (rsi5 && rsi5 < 35) { buyScore += 1; factors.push({ label: 'RSI M5', val: `${rsi5.toFixed(0)} OS`, side: 'buy' }); }
+  else if (rsi5 && rsi5 > 65) { sellScore += 1; factors.push({ label: 'RSI M5', val: `${rsi5.toFixed(0)} OB`, side: 'sell' }); }
+  else factors.push({ label: 'RSI M5', val: rsi5 ? rsi5.toFixed(0) : '─', side: 'neutral' });
+
+  if (session.active) {
+    buyScore += 0.5; sellScore += 0.5;
+    factors.push({ label: 'Session', val: session.name, side: 'buy' });
+  } else {
+    factors.push({ label: 'Session', val: 'DEAD ZONE', side: 'neutral' });
+  }
+
+  let direction = null, confidence = 0;
+  if (buyScore >= 3.5 && buyScore > sellScore) {
+    direction = 'BUY'; confidence = Math.min(100, Math.round((buyScore / 6) * 100));
+  } else if (sellScore >= 3.5 && sellScore > buyScore) {
+    direction = 'SELL'; confidence = Math.min(100, Math.round((sellScore / 6) * 100));
+  } else {
+    return { direction: 'WAIT', confidence: 0, factors, atr, a5, a15, a1h };
+  }
+
+  const slPips = (atr * 1.5).toFixed(2);
+  const tp1Pips = (atr * 1.5).toFixed(2);
+  const tp2Pips = (atr * 2.5).toFixed(2);
+
+  let entry = price, sl, tp1, tp2;
+  if (direction === 'BUY') {
+    sl = +(price - atr * 1.5).toFixed(2);
+    tp1 = +(price + atr * 1.5).toFixed(2);
+    tp2 = +(price + atr * 2.5).toFixed(2);
+  } else {
+    sl = +(price + atr * 1.5).toFixed(2);
+    tp1 = +(price - atr * 1.5).toFixed(2);
+    tp2 = +(price - atr * 2.5).toFixed(2);
+  }
+
+  const rr = (parseFloat(tp1Pips) / parseFloat(slPips)).toFixed(2);
+  return { direction, confidence, entry, sl, tp1, tp2, slPips, tp1Pips, tp2Pips, rr, atr: atr.toFixed(2), factors, a5, a15, a1h };
+}
+
+// ── RENDER SIGNAL
+function renderSignal(sig) {
+  const body = document.getElementById('signal-body');
+  const card = document.getElementById('signal-card');
+  const glow = document.getElementById('signal-glow');
+
+  if (!sig) {
+    body.innerHTML = '<div class="loading-txt">Menunggu data...</div>';
+    glow.style.background = 'none';
+    card.style.borderColor = '#1C1C1C';
     return;
   }
-  if (bias === 'bull') {
-    tfEl.textContent = '▲';
-    tfEl.className   = 'tf-signal bull';
-  } else {
-    tfEl.textContent = '▼';
-    tfEl.className   = 'tf-signal bear';
+
+  const sigColor = sig.direction === 'BUY' ? '#4ADE80' : sig.direction === 'SELL' ? '#F87171' : '#F59E0B';
+  card.style.borderColor = sig.direction !== 'WAIT' ? sigColor + '30' : '#1C1C1C';
+
+  if (sig.direction === 'WAIT') {
+    glow.style.background = 'none';
+    body.innerHTML = `
+      <div class="signal-wait">
+        <div class="wait-txt">WAIT</div>
+        <div class="wait-sub">Confluence belum cukup kuat</div>
+      </div>`;
+    return;
   }
-  emaEl.textContent = `${e5?.toFixed(1)} / ${e13?.toFixed(1)}`;
+
+  const glowColor = sig.direction === 'BUY'
+    ? 'linear-gradient(135deg, rgba(74,222,128,0.06) 0%, transparent 60%)'
+    : 'linear-gradient(135deg, rgba(248,113,113,0.06) 0%, transparent 60%)';
+  glow.style.background = glowColor;
+
+  const factorsHtml = sig.factors.map(f =>
+    `<div class="factor-row">
+      <span class="f-label">${f.label}</span>
+      <span class="f-val f-${f.side}">${f.val}</span>
+    </div>`
+  ).join('');
+
+  const tp2Diff = pipsDiff(sig.entry, sig.tp2);
+
+  body.innerHTML = `
+    <div class="sig-top">
+      <span id="sig-direction" style="color:${sigColor}">${sig.direction}</span>
+      <span id="sig-confidence" style="color:${sigColor};background:${sigColor}15">${sig.confidence}% conf</span>
+    </div>
+    <div class="entry-table">
+      <div class="entry-row">
+        <span class="e-label">ENTRY</span>
+        <span class="e-val" style="color:#E5E7EB">${fmtPrice(sig.entry)}</span>
+      </div>
+      <div class="entry-row">
+        <span class="e-label">STOP LOSS</span>
+        <span class="e-val" style="color:#F87171">${fmtPrice(sig.sl)} &nbsp;(−${sig.slPips} pts)</span>
+      </div>
+      <div class="entry-row">
+        <span class="e-label">TP 1</span>
+        <span class="e-val" style="color:#4ADE80">${fmtPrice(sig.tp1)} &nbsp;(+${sig.tp1Pips} pts)</span>
+      </div>
+      <div class="entry-row">
+        <span class="e-label">TP 2</span>
+        <span class="e-val" style="color:#4ADE80;opacity:0.7">${fmtPrice(sig.tp2)} &nbsp;(+${tp2Diff} pts)</span>
+      </div>
+      <div class="entry-row">
+        <span class="e-label">R:R RATIO</span>
+        <span class="e-val" style="color:#B8860B">1 : ${sig.rr}</span>
+      </div>
+    </div>
+    <div class="conf-title">CONFLUENCE FACTORS</div>
+    ${factorsHtml}
+  `;
 }
 
-function showSignal(type, conf, atr) {
-  const card  = document.getElementById('signalCard');
-  const emoji = document.getElementById('signalEmoji');
-  const title = document.getElementById('signalTitle');
-  const sub   = document.getElementById('signalSub');
-  const tp    = document.getElementById('tpCard');
-  const sl    = document.getElementById('slCard');
-
-  if (type === 'buy') {
-    card.className  = 'signal-card buy';
-    emoji.textContent = '🟢';
-    title.textContent = 'BUY — Konfirmasi ' + conf + '/3';
-    title.className = 'signal-title buy';
-    sub.textContent = 'Momentum bullish · EMA bull ' + conf + ' timeframe';
-    document.getElementById('tpVal').textContent = (currentPrice + atr * 2).toFixed(2);
-    document.getElementById('slVal').textContent = (currentPrice - atr).toFixed(2);
-    tp.className = 'tpsl-card visible';
-    sl.className = 'tpsl-card visible';
-  } else if (type === 'sell') {
-    card.className  = 'signal-card sell';
-    emoji.textContent = '🔴';
-    title.textContent = 'SELL — Konfirmasi ' + conf + '/3';
-    title.className = 'signal-title sell';
-    sub.textContent = 'Momentum bearish · EMA bear ' + conf + ' timeframe';
-    document.getElementById('tpVal').textContent = (currentPrice - atr * 2).toFixed(2);
-    document.getElementById('slVal').textContent = (currentPrice + atr).toFixed(2);
-    tp.className = 'tpsl-card visible';
-    sl.className = 'tpsl-card visible';
-  } else {
-    card.className  = 'signal-card wait';
-    emoji.textContent = '⏳';
-    title.textContent = 'WAIT — Tunggu Konfirmasi';
-    title.className = 'signal-title wait';
-    const bulls = ['H1','M15','M5'].filter(k => {
-      const el = document.getElementById('tf'+k);
-      return el.textContent === '▲';
-    }).length;
-    const bears = 3 - bulls;
-    sub.textContent = `Bull ${bulls}/3 · Bear ${bears}/3 · Confluence tidak cukup`;
-    tp.className = 'tpsl-card';
-    sl.className = 'tpsl-card';
-  }
+// ── FETCH & SCAN
+async function fetchTicker() {
+  const r = await fetch(`https://api.binance.com/api/v3/ticker/24hr?symbol=${SYMBOL}`);
+  const d = await r.json();
+  return { price: parseFloat(d.lastPrice), change: parseFloat(d.priceChangePercent), high: parseFloat(d.highPrice), low: parseFloat(d.lowPrice) };
 }
 
-// ── LOT CALC ──
-function calcLot() {
-  const modal = parseFloat(document.getElementById('inModal').value) || 1000;
-  const risk  = parseFloat(document.getElementById('inRisk').value) || 1;
+async function fetchKlines(interval, limit = 60) {
+  const r = await fetch(`https://api.binance.com/api/v3/klines?symbol=${SYMBOL}&interval=${interval}&limit=${limit}`);
+  return parseBinanceKlines(await r.json());
+}
+
+async function scan() {
+  const btn = document.getElementById('scan-btn');
+  const scanTxt = document.getElementById('scanning-txt');
+  const lastUpd = document.getElementById('last-update');
+
+  btn.disabled = true;
+  btn.textContent = 'SCANNING...';
+  scanTxt.style.display = 'inline';
+  lastUpd.textContent = '';
+
+  try {
+    const [ticker, m5, m15, h1] = await Promise.all([
+      fetchTicker(),
+      fetchKlines('5m'),
+      fetchKlines('15m'),
+      fetchKlines('1h'),
+    ]);
+
+    // Update price
+    document.getElementById('price-value').textContent = fmtPrice(ticker.price);
+    const chEl = document.getElementById('price-change');
+    chEl.textContent = fmtPct(ticker.change);
+    chEl.style.color = ticker.change >= 0 ? '#4ADE80' : '#F87171';
+    document.getElementById('price-high').textContent = fmtPrice(ticker.high);
+    document.getElementById('price-low').textContent = fmtPrice(ticker.low);
+
+    // ATR
+    const atr = calcATR(m5, 14);
+    document.getElementById('atr-val').textContent = atr ? atr.toFixed(2) : '─';
+
+    // MTF bias
+    const a5 = analyzeTimeframe(m5);
+    const a15 = analyzeTimeframe(m15);
+    const a1h = analyzeTimeframe(h1);
+    setBias('bias-m5', a5.bias);
+    setBias('bias-m15', a15.bias);
+    setBias('bias-h1', a1h.bias);
+
+    // Signal
+    const sess = getSessionWIB();
+    const sig = generateSignal(m5, m15, h1, ticker, sess);
+    currentSignal = sig;
+    renderSignal(sig);
+    updateLot();
+
+    const now = new Date();
+    const t = now.toTimeString().substr(0, 8);
+    lastUpd.textContent = t;
+
+  } catch (e) {
+    document.getElementById('signal-body').innerHTML = `
+      <div class="signal-error">
+        <div class="err-txt">⚠ Gagal fetch data. Cek koneksi.</div>
+        <button class="retry-btn" onclick="scan()">RETRY</button>
+      </div>`;
+  }
+
+  scanTxt.style.display = 'none';
+  btn.disabled = false;
+  btn.textContent = '⚡ SCAN SEKARANG';
+}
+
+// ── LOT CALC
+function updateLot() {
+  const modal = parseFloat(document.getElementById('inp-modal').value) || 0;
+  const risk = parseFloat(document.getElementById('inp-risk').value) || 0;
   const riskAmt = modal * risk / 100;
-  // XAU: 1 lot = $10/pip, use 100 pip SL = $1000 risk/lot → lot = riskAmt/1000
-  // Simplified: 1 lot XAU = $10 per $1 move, SL ~$3 → 30/lot
-  const sl_dollar = currentPrice * 0.003 || 3; // ~0.3%
-  const lot = Math.max(0.01, Math.min(10, riskAmt / (sl_dollar * 100)));
-  const rounded = Math.round(lot * 100) / 100;
-  document.getElementById('lotVal').textContent = rounded.toFixed(2);
-  document.getElementById('lotSub').textContent = `Risiko $${riskAmt.toFixed(2)} · ${risk.toFixed(1)}% dari modal`;
+  document.getElementById('risk-amt-val').textContent = '$' + riskAmt.toFixed(0);
+
+  if (currentSignal && currentSignal.slPips && currentSignal.direction !== 'WAIT') {
+    const slPips = parseFloat(currentSignal.slPips);
+    const lot = Math.max(0.01, (riskAmt / (slPips * RISK_PER_PIP)));
+    const lotFmt = lot.toFixed(2);
+    const profit = (parseFloat(currentSignal.tp1Pips) * RISK_PER_PIP * parseFloat(lotFmt)).toFixed(0);
+    document.getElementById('lot-val').textContent = lotFmt;
+    document.getElementById('profit-val').textContent = '$' + profit;
+    document.getElementById('lot-info').textContent = `SL = ${slPips} pts · ${RISK_PER_PIP}$/pip/lot`;
+  } else {
+    document.getElementById('lot-val').textContent = '─';
+    document.getElementById('profit-val').textContent = '─';
+    document.getElementById('lot-info').textContent = 'Scan dulu untuk hitung lot';
+  }
 }
 
-// ── INIT ──
-async function init() {
-  updateSession();
-  setInterval(updateSession, 1000);
-
-  await fetchHistorical();
-  connectWS();
-
-  // Auto scan after price loads
-  setTimeout(() => { if (currentPrice) doScan(); }, 3000);
-  calcLot();
-}
-
-init();
+// ── AUTO SCAN
+scan();
+setInterval(scan, 30000);
 </script>
 </body>
 </html>
