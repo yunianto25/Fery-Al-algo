@@ -638,12 +638,23 @@ let candles = {}; // store candle data per TF
 let lastPrice = null;
 
 async function fetchPrice() {
-  const proxy = 'https://api.allorigins.win/get?url=';
-  const yahooUrl = encodeURIComponent('https://query1.finance.yahoo.com/v8/finance/chart/GC=F?interval=1m&range=1d');
+  const targetUrl = 'https://query1.finance.yahoo.com/v8/finance/chart/GC=F?interval=1m&range=1d';
+  const proxies = [
+    'https://corsproxy.io/?' + encodeURIComponent(targetUrl),
+    'https://api.allorigins.win/get?url=' + encodeURIComponent(targetUrl),
+    'https://api.codetabs.com/v1/proxy?quest=' + encodeURIComponent(targetUrl),
+  ];
+  let data = null;
+  for (const proxyUrl of proxies) {
+    try {
+      const res = await fetch(proxyUrl, { signal: AbortSignal.timeout(8000) });
+      const raw = await res.json();
+      const parsed = raw.contents ? JSON.parse(raw.contents) : raw;
+      if (parsed && parsed.chart && parsed.chart.result) { data = parsed; break; }
+    } catch(e) { continue; }
+  }
   try {
-    const res = await fetch(proxy + yahooUrl);
-    const raw = await res.json();
-    const data = JSON.parse(raw.contents);
+    if (!data) throw new Error('All proxies failed');
     const chart = data.chart.result[0];
     const meta = chart.meta;
     const closes = chart.indicators.quote[0].close;
